@@ -1,0 +1,28 @@
+[3.743s] Invoking command in '/home/nvidia/ros2_rlbike/src/rlbike': PYTHONPATH=/home/nvidia/ros2_rlbike/install/rlbike/lib/python3.6/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/rlbike build --build-base /home/nvidia/ros2_rlbike/build/rlbike/build install --prefix /home/nvidia/ros2_rlbike/install/rlbike --record /home/nvidia/ros2_rlbike/build/rlbike/install.log --single-version-externally-managed
+[5.167s] /home/nvidia/.local/lib/python3.6/site-packages/setuptools/dist.py:726: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead
+[5.168s]   % (opt, underscore_opt)
+[5.169s] /home/nvidia/.local/lib/python3.6/site-packages/setuptools/dist.py:726: UserWarning: Usage of dash-separated 'install-scripts' will not be supported in future versions. Please use the underscore name 'install_scripts' instead
+[5.170s]   % (opt, underscore_opt)
+[5.356s] running egg_info
+[5.357s] writing ../../build/rlbike/rlbike.egg-info/PKG-INFO
+[5.359s] writing dependency_links to ../../build/rlbike/rlbike.egg-info/dependency_links.txt
+[5.360s] writing entry points to ../../build/rlbike/rlbike.egg-info/entry_points.txt
+[5.361s] writing requirements to ../../build/rlbike/rlbike.egg-info/requires.txt
+[5.362s] writing top-level names to ../../build/rlbike/rlbike.egg-info/top_level.txt
+[5.376s] reading manifest file '../../build/rlbike/rlbike.egg-info/SOURCES.txt'
+[5.383s] writing manifest file '../../build/rlbike/rlbike.egg-info/SOURCES.txt'
+[5.384s] running build
+[5.384s] running build_py
+[5.389s] running install
+[5.389s] /home/nvidia/.local/lib/python3.6/site-packages/setuptools/command/install.py:37: SetuptoolsDeprecationWarning: setup.py install is deprecated. Use build and pip and other standards-based tools.
+[5.390s]   setuptools.SetuptoolsDeprecationWarning,
+[5.391s] running install_lib
+[5.396s] running install_data
+[5.398s] running install_egg_info
+[5.413s] removing '/home/nvidia/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike-0.0.0-py3.6.egg-info' (and everything under it)
+[5.415s] Copying ../../build/rlbike/rlbike.egg-info to /home/nvidia/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike-0.0.0-py3.6.egg-info
+[5.420s] running install_scripts
+[5.504s] Installing listener script to /home/nvidia/ros2_rlbike/install/rlbike/lib/rlbike
+[5.505s] Installing run script to /home/nvidia/ros2_rlbike/install/rlbike/lib/rlbike
+[5.507s] writing list of installed files to '/home/nvidia/ros2_rlbike/build/rlbike/install.log'
+[5.637s] Invoked command in '/home/nvidia/ros2_rlbike/src/rlbike' returned '0': PYTHONPATH=/home/nvidia/ros2_rlbike/install/rlbike/lib/python3.6/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/rlbike build --build-base /home/nvidia/ros2_rlbike/build/rlbike/build install --prefix /home/nvidia/ros2_rlbike/install/rlbike --record /home/nvidia/ros2_rlbike/build/rlbike/install.log --single-version-externally-managed

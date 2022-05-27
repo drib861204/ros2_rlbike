@@ -1,0 +1,77 @@
+[0.000000] (-) TimerEvent: {}
+[0.001446] (rlbike) JobQueued: {'identifier': 'rlbike', 'dependencies': OrderedDict()}
+[0.002050] (rlbike) JobStarted: {'identifier': 'rlbike'}
+[0.099101] (-) TimerEvent: {}
+[0.200013] (-) TimerEvent: {}
+[0.300657] (-) TimerEvent: {}
+[0.401256] (-) TimerEvent: {}
+[0.501893] (-) TimerEvent: {}
+[0.602582] (-) TimerEvent: {}
+[0.703408] (-) TimerEvent: {}
+[0.804014] (-) TimerEvent: {}
+[0.904614] (-) TimerEvent: {}
+[1.006015] (-) TimerEvent: {}
+[1.107028] (-) TimerEvent: {}
+[1.207769] (-) TimerEvent: {}
+[1.311088] (-) TimerEvent: {}
+[1.419311] (-) TimerEvent: {}
+[1.520444] (-) TimerEvent: {}
+[1.624722] (-) TimerEvent: {}
+[1.725340] (-) TimerEvent: {}
+[1.826091] (-) TimerEvent: {}
+[1.926828] (-) TimerEvent: {}
+[2.027423] (-) TimerEvent: {}
+[2.128022] (-) TimerEvent: {}
+[2.228636] (-) TimerEvent: {}
+[2.329269] (-) TimerEvent: {}
+[2.429886] (-) TimerEvent: {}
+[2.530521] (-) TimerEvent: {}
+[2.631148] (-) TimerEvent: {}
+[2.731792] (-) TimerEvent: {}
+[2.832441] (-) TimerEvent: {}
+[2.933152] (-) TimerEvent: {}
+[2.948678] (rlbike) Command: {'cmd': ['/usr/bin/python3', 'setup.py', 'egg_info', '--egg-base', '../../build/rlbike', 'build', '--build-base', '/home/nvidia/ros2_rlbike/build/rlbike/build', 'install', '--prefix', '/home/nvidia/ros2_rlbike/install/rlbike', '--record', '/home/nvidia/ros2_rlbike/build/rlbike/install.log', '--single-version-externally-managed'], 'cwd': '/home/nvidia/ros2_rlbike/src/rlbike', 'env': {'LESSOPEN': '| /usr/bin/lesspipe %s', 'UNITY_DEFAULT_PROFILE': 'unity', 'GTK_CSD': '0', 'USER': 'nvidia', 'UNITY_HAS_3D_SUPPORT': 'true', 'LC_TIME': 'lzh_TW', 'TEXTDOMAIN': 'im-config', 'COMPIZ_CONFIG_PROFILE': 'ubuntu', 'XDG_SESSION_TYPE': 'x11', 'GNOME_SESSION_XDG_SESSION_PATH': '', 'LD_LIBRARY_PATH': '/opt/ros/eloquent/lib/aarch64-linux-gnu:/opt/ros/eloquent/lib', 'SHLVL': '2', 'OLDPWD': '/home/nvidia/ros2_rlbike/src', 'QT4_IM_MODULE': 'xim', 'HOME': '/home/nvidia', 'DESKTOP_SESSION': 'unity', 'GTK_MODULES': 'gail:atk-bridge:unity-gtk-module', 'ROS_PYTHON_VERSION': '3', 'LC_MONETARY': 'lzh_TW', 'MANAGERPID': '7481', 'DBUS_STARTER_BUS_TYPE': 'session', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus,guid=50fbcddd7104daa651081309628ceaa3', 'COLORTERM': 'truecolor', 'MANDATORY_PATH': '/usr/share/gconf/unity.mandatory.path', 'COLCON_PREFIX_PATH': '/home/nvidia/ros2_rlbike/install', 'IM_CONFIG_PHASE': '2', 'ROS_DISTRO': 'eloquent', 'LOGNAME': 'nvidia', 'GTK_IM_MODULE': 'ibus', 'JOURNAL_STREAM': '8:47310', '_': '/usr/bin/colcon', 'DEFAULTS_PATH': '/usr/share/gconf/unity.default.path', 'ROS_VERSION': '2', 'USERNAME': 'nvidia', 'TERM': 'xterm-256color', 'ROS_LOCALHOST_ONLY': '0', 'GNOME_DESKTOP_SESSION_ID': 'this-is-deprecated', 'GTK2_MODULES': 'overlay-scrollbar', 'WINDOWPATH': '2', 'PATH': '/opt/ros/eloquent/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin', 'INVOCATION_ID': '487d2c62430546c397ecb2dd94a9f235', 'SESSION_MANAGER': 'local/nvidia:@/tmp/.ICE-unix/8193,unix/nvidia:/tmp/.ICE-unix/8193', 'XDG_MENU_PREFIX': 'gnome-', 'GNOME_TERMINAL_SCREEN': '/org/gnome/Terminal/screen/244a5459_ab47_4eaf_89c6_16b1055dca4d', 'LC_ADDRESS': 'lzh_TW', 'XDG_RUNTIME_DIR': '/run/user/1000', 'DISPLAY': ':1', 'ZEITGEIST_DATA_PATH': '/home/nvidia/.local/share/zeitgeist', 'LANG': 'en_US.UTF-8', 'XDG_CURRENT_DESKTOP': 'Unity:Unity7:ubuntu', 'LC_TELEPHONE': 'lzh_TW', 'LD_PRELOAD': 'libgtk3-nocsd.so.0', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'XDG_SESSION_DESKTOP': 'unity', 'XMODIFIERS': '@im=ibus', 'GNOME_TERMINAL_SERVICE': ':1.208', 'XAUTHORITY': '/run/user/1000/gdm/Xauthority', 'AMENT_PREFIX_PATH': '/home/nvidia/ros2_rlbike/install/rlbike:/opt/ros/eloquent', 'SSH_AUTH_SOCK': '/run/user/1000/keyring/ssh', 'SSH_AGENT_LAUNCHER': 'gnome-keyring', 'LC_NAME': 'lzh_TW', 'SHELL': '/bin/bash', 'QT_ACCESSIBILITY': '1', 'GDMSESSION': 'unity', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'LC_MEASUREMENT': 'lzh_TW', 'TEXTDOMAINDIR': '/usr/share/locale/', 'GPG_AGENT_INFO': '/run/user/1000/gnupg/S.gpg-agent:0:1', 'LC_IDENTIFICATION': 'lzh_TW', 'QT_IM_MODULE': 'ibus', 'PWD': '/home/nvidia/ros2_rlbike/build/rlbike', 'CLUTTER_IM_MODULE': 'xim', 'XDG_DATA_DIRS': '/usr/share/unity:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop', 'DBUS_STARTER_ADDRESS': 'unix:path=/run/user/1000/bus,guid=50fbcddd7104daa651081309628ceaa3', 'XDG_CONFIG_DIRS': '/etc/xdg/xdg-unity:/etc/xdg', 'LC_NUMERIC': 'lzh_TW', 'PYTHONPATH': '/home/nvidia/ros2_rlbike/install/rlbike/lib/python3.6/site-packages:/home/nvidia/ros2_rlbike/install/rlbike/lib/python3.6/site-packages:/opt/ros/eloquent/lib/python3.6/site-packages', 'LC_PAPER': 'lzh_TW', 'COLCON': '1', 'VTE_VERSION': '5202'}, 'shell': False}
+[3.034949] (-) TimerEvent: {}
+[3.138696] (-) TimerEvent: {}
+[3.239361] (-) TimerEvent: {}
+[3.340356] (-) TimerEvent: {}
+[3.441265] (-) TimerEvent: {}
+[3.541872] (-) TimerEvent: {}
+[3.642477] (-) TimerEvent: {}
+[3.743070] (-) TimerEvent: {}
+[3.843648] (-) TimerEvent: {}
+[3.944279] (-) TimerEvent: {}
+[3.989580] (rlbike) StderrLine: {'line': b"/home/nvidia/.local/lib/python3.6/site-packages/setuptools/dist.py:726: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead\n"}
+[3.990438] (rlbike) StderrLine: {'line': b'  % (opt, underscore_opt)\n'}
+[3.991011] (rlbike) StderrLine: {'line': b"/home/nvidia/.local/lib/python3.6/site-packages/setuptools/dist.py:726: UserWarning: Usage of dash-separated 'install-scripts' will not be supported in future versions. Please use the underscore name 'install_scripts' instead\n"}
+[3.991519] (rlbike) StderrLine: {'line': b'  % (opt, underscore_opt)\n'}
+[4.044429] (-) TimerEvent: {}
+[4.145221] (-) TimerEvent: {}
+[4.156312] (rlbike) StdoutLine: {'line': b'running egg_info\n'}
+[4.158571] (rlbike) StdoutLine: {'line': b'writing ../../build/rlbike/rlbike.egg-info/PKG-INFO\n'}
+[4.159714] (rlbike) StdoutLine: {'line': b'writing dependency_links to ../../build/rlbike/rlbike.egg-info/dependency_links.txt\n'}
+[4.160411] (rlbike) StdoutLine: {'line': b'writing entry points to ../../build/rlbike/rlbike.egg-info/entry_points.txt\n'}
+[4.161496] (rlbike) StdoutLine: {'line': b'writing requirements to ../../build/rlbike/rlbike.egg-info/requires.txt\n'}
+[4.163377] (rlbike) StdoutLine: {'line': b'writing top-level names to ../../build/rlbike/rlbike.egg-info/top_level.txt\n'}
+[4.175207] (rlbike) StdoutLine: {'line': b"reading manifest file '../../build/rlbike/rlbike.egg-info/SOURCES.txt'\n"}
+[4.181384] (rlbike) StdoutLine: {'line': b"writing manifest file '../../build/rlbike/rlbike.egg-info/SOURCES.txt'\n"}
+[4.182232] (rlbike) StdoutLine: {'line': b'running build\n'}
+[4.182645] (rlbike) StdoutLine: {'line': b'running build_py\n'}
+[4.184820] (rlbike) StdoutLine: {'line': b'running install\n'}
+[4.185435] (rlbike) StderrLine: {'line': b'/home/nvidia/.local/lib/python3.6/site-packages/setuptools/command/install.py:37: SetuptoolsDeprecationWarning: setup.py install is deprecated. Use build and pip and other standards-based tools.\n'}
+[4.185846] (rlbike) StderrLine: {'line': b'  setuptools.SetuptoolsDeprecationWarning,\n'}
+[4.186650] (rlbike) StdoutLine: {'line': b'running install_lib\n'}
+[4.191729] (rlbike) StdoutLine: {'line': b'running install_data\n'}
+[4.193602] (rlbike) StdoutLine: {'line': b'running install_egg_info\n'}
+[4.200984] (rlbike) StdoutLine: {'line': b"removing '/home/nvidia/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike-0.0.0-py3.6.egg-info' (and everything under it)\n"}
+[4.202072] (rlbike) StdoutLine: {'line': b'Copying ../../build/rlbike/rlbike.egg-info to /home/nvidia/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike-0.0.0-py3.6.egg-info\n'}
+[4.206131] (rlbike) StdoutLine: {'line': b'running install_scripts\n'}
+[4.245746] (-) TimerEvent: {}
+[4.285834] (rlbike) StdoutLine: {'line': b'Installing listener script to /home/nvidia/ros2_rlbike/install/rlbike/lib/rlbike\n'}
+[4.287455] (rlbike) StdoutLine: {'line': b'Installing talker script to /home/nvidia/ros2_rlbike/install/rlbike/lib/rlbike\n'}
+[4.288455] (rlbike) StdoutLine: {'line': b"writing list of installed files to '/home/nvidia/ros2_rlbike/build/rlbike/install.log'\n"}
+[4.346337] (-) TimerEvent: {}
+[4.416536] (rlbike) CommandEnded: {'returncode': 0}
+[4.447255] (-) TimerEvent: {}
+[4.495620] (rlbike) JobEnded: {'identifier': 'rlbike', 'rc': 0}
+[4.500227] (-) EventReactorShutdown: {}
