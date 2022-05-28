@@ -206,6 +206,8 @@ def run(args):
         #    agent.step(s, a, r, ns, d, frame, ERE)
         agent.step(state, action, reward, next_state, [done], frame, ERE)
 
+        print(time.time())
+
         if ERE:
             eta_t = eta_0 + (eta_T - eta_0) * (frame / (frames + 1))
             episode_K += 1
@@ -276,7 +278,16 @@ parser.add_argument("--trial", type=int, default=0, help="trial")
 parser.add_argument("--rep_max", type=int, default=500, help="maximum steps in one episode")
 args = parser.parse_args()
 
-if __name__ == "__main__":
+
+torch.manual_seed(args.seed)
+np.random.seed(args.seed)
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("Using device: {}".format(device))
+agent = Agent(state_size=3, action_size=1, args=args, device=device)
+
+
+#if __name__ == "__main__":
+def main(args=args):
 
     #if args.saved_model == None:
     #    writer = SummaryWriter("runs_v3/" + args.info + str(args.trial))
@@ -288,7 +299,7 @@ if __name__ == "__main__":
 
     # envs.seed(args.seed)
     # eval_env.seed(args.seed+1)
-    torch.manual_seed(args.seed)
+    '''torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -301,9 +312,11 @@ if __name__ == "__main__":
     state_size = 3
     action_size = 1
 
-    agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
+    agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)'''
 
     t0 = time.time()
+    print("###########################")
+
     if args.saved_model != None:
         agent.actor_local.load_state_dict(torch.load(args.saved_model, map_location=device))
         evaluate(frame=None, args=args, capture=False)
@@ -314,12 +327,16 @@ if __name__ == "__main__":
 
         # save policy
         torch.save(agent.actor_local.state_dict(),
-                   'runs_v3/{}{}/'.format(args.info, args.trial) + args.info + str(args.trial) + ".pth")
+                   '/home/nvidia/ros2_rlbike/runs_v3/{}{}/'.format(args.info, args.trial) + args.info + str(args.trial) + ".pth")
 
         # save parameter
-        with open('runs_v3/{}{}/'.format(args.info, args.trial) + args.info + str(args.trial) + ".json", 'w') as f:
+        with open('/home/nvidia/ros2_rlbike/runs_v3/{}{}/'.format(args.info, args.trial) + args.info + str(args.trial) + ".json", 'w') as f:
             json.dump(args.__dict__, f, indent=2)
 
     #eval_env.close()
     #if args.saved_model == None:
     #    writer.close()
+
+
+if __name__ == "__main__":
+    main()
