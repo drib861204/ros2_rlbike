@@ -20,7 +20,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-                'run = rlbike.run:main'
+                'run = rlbike.run:main',
+		'talker = rlbike.publisher_member_function:main',
+		'listener = rlbike.subscriber_member_function:main',
+		'motor_bridge = rlbike.motor_bridge:main'
         ],
     },
 )

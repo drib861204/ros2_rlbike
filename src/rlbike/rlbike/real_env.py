@@ -1,17 +1,3 @@
-"""
-Title: pendulum_pygame
-Author: [jadenhensley](https://github.com/jadenhensley)
-Last modified: 2021/10/18
-Description: Pendulum project, built using pygame and math modules.
-
-Title: wheelPole
-Author: [aimetz](https://github.com/aimetz)
-Last modified: 2021/04/20
-
-Title: gym/gym/envs/classic_control/pendulum.py
-Author: [openai](https://github.com/openai)
-Last modified: 2021/10/31
-"""
 import imp
 import pygame
 from math import pi, sin, cos
