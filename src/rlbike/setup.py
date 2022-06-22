@@ -1,11 +1,12 @@
 from setuptools import setup
 
 package_name = 'rlbike'
+submodules = 'rlbike/files'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],
+    packages=[package_name, submodules],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -21,9 +22,8 @@ setup(
     entry_points={
         'console_scripts': [
                 'run = rlbike.run:main',
-		'talker = rlbike.publisher_member_function:main',
-		'listener = rlbike.subscriber_member_function:main',
-		'motor_bridge = rlbike.motor_bridge:main'
+		        'motor_bridge = rlbike.motor_bridge:main'
+		        'imu_bridge = rlbike.imu_bridge:main'
         ],
     },
 )

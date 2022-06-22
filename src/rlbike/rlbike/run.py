@@ -1,18 +1,47 @@
 import numpy as np
 import random
 import gym
-# import pybulletgym # to run e.g. HalfCheetahPyBullet-v0
-# import pybullet_envs # to run e.g. HalfCheetahBullet-v0 different reward function bullet-v0 starts ~ -1500. pybullet-v0 starts at 0
 from collections import deque
 import torch
 import time
 #from torch.utils.tensorboard import SummaryWriter
 import argparse
-from files import MultiPro
-from files.Agent import Agent
+from .files import MultiPro
+from .files.Agent import Agent
 import json
 import matplotlib.pyplot as plt
-from real_env import *
+
+
+class The_cool_bike():
+    def __init__(self):
+        self.max_Iq = 1000 # not sure
+        self.max_q1 = 5*pi/180
+
+    def reset(self, saved):
+        self.ang = 1 # from imu
+        self.state = np.array([self.ang, 0, 0], dtype=np.float32)
+    
+        return self.state
+
+    def step(self, action):
+
+        Iq_cmd = action * self.max_Iq
+        Iq_cmd = Iq_cmd[0]
+
+        q1 = 1 # from imu
+        q1_dot = 1 # from imu
+        q2_dot = 1 # from motor
+
+        self.state = (q1, q1_dot, q2_dot)
+        done = bool(
+                q1 < -self.max_q1
+                or q1 > self.max_q1
+            )
+
+        costs = 100 * q1 ** 2 + 1 * q1_dot ** 2
+        
+        return np.array(self.state, dtype=np.float32), -costs, done, {}
+
 
 
 def timer(start, end):
@@ -22,7 +51,7 @@ def timer(start, end):
     print("\nTraining Time:  {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
 
 
-def evaluate(frame, args, eval_runs=5, capture=False):
+def evaluate(agent, frame, args, eval_runs=5, capture=False):
     """
     Makes an evaluation run with the current episode
     """
@@ -147,7 +176,7 @@ def evaluate(frame, args, eval_runs=5, capture=False):
     #    writer.add_scalar("Reward", np.mean(reward_batch), frame)
 
 
-def run(args):
+def run(agent, args):
     rep_max = args.rep_max
 
     """Deep Q-Learning.
@@ -185,8 +214,8 @@ def run(args):
         # print("run")
         rep += 1
 
-        if frame % eval_every == 0 or frame == 1:
-            evaluate(frame=frame * worker, args=args, eval_runs=eval_runs)
+        #if frame % eval_every == 0 or frame == 1:
+        #    evaluate(frame=frame * worker, args=args, eval_runs=eval_runs)
 
         action = agent.act(state)
         #action = np.clip(action, action_low, action_high) <- no need, already in range (-1,+1)
@@ -279,13 +308,6 @@ parser.add_argument("--rep_max", type=int, default=500, help="maximum steps in o
 args = parser.parse_args()
 
 
-torch.manual_seed(args.seed)
-np.random.seed(args.seed)
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print("Using device: {}".format(device))
-agent = Agent(state_size=3, action_size=1, args=args, device=device)
-
-
 #if __name__ == "__main__":
 def main(args=args):
 
@@ -296,32 +318,24 @@ def main(args=args):
 
     #envs = Pendulum(args.render_evals, args.seed)
     #eval_env = Pendulum(args.render_evals, args.seed + 1)
-
-    # envs.seed(args.seed)
-    # eval_env.seed(args.seed+1)
-    '''torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
+    env = The_cool_bike()
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Using device: {}".format(device))
 
-    #action_high = eval_env.action_space.high[0]
-    #action_low = eval_env.action_space.low[0]
-    #state_size = eval_env.observation_space.shape[0]
-    #action_size = eval_env.action_space.shape[0]
     state_size = 3
     action_size = 1
 
-    agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)'''
+    agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
 
     t0 = time.time()
     print("###########################")
 
     if args.saved_model != None:
         agent.actor_local.load_state_dict(torch.load(args.saved_model, map_location=device))
-        evaluate(frame=None, args=args, capture=False)
+        evaluate(agent=agent, frame=None, args=args, capture=False)
     else:
-        run(args)
+        run(agent, args)
         t1 = time.time()
         timer(t0, t1)
 
