@@ -245,6 +245,7 @@ class Node_RL(Node):
             Float64, 'speed_feedback', self.imu_callback, 10)
         self.motor_sub  # prevent unused variable warning
 
+        self.frame = 1
         self.scores = []  # list containing scores from each episode
         self.scores_window = deque(maxlen=100)  # last 100 scores
         self.i_episode = 1
@@ -268,6 +269,7 @@ class Node_RL(Node):
         self.reward = 0
         self.done = False
         agent.step(self.state, self.action, self.reward, self.next_state, [self.done], self.frame, self.ERE)
+        self.frame += 1
         self.state = self.next_state
         self.score += np.mean(self.reward)
 
