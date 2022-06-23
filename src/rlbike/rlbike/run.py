@@ -4,12 +4,69 @@ import gym
 from collections import deque
 import torch
 import time
-#from torch.utils.tensorboard import SummaryWriter
 import argparse
 from .files import MultiPro
 from .files.Agent import Agent
 import json
 import matplotlib.pyplot as plt
+
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Float64
+
+parser = argparse.ArgumentParser(description="")
+parser.add_argument("-env", type=str, default="HalfCheetahBulletEnv-v0",
+                    help="Environment name, default = HalfCheetahBulletEnv-v0")
+parser.add_argument("-per", type=int, default=0, choices=[0, 1],
+                    help="Adding Priorizied Experience Replay to the agent if set to 1, default = 0")
+parser.add_argument("-munchausen", type=int, default=0, choices=[0, 1],
+                    help="Adding Munchausen RL to the agent if set to 1, default = 0")
+parser.add_argument("-dist", "--distributional", type=int, default=0, choices=[0, 1],
+                    help="Using a distributional IQN Critic if set to 1, default=0")
+parser.add_argument("-ere", type=int, default=0, choices=[0, 1],
+                    help="Adding Emphasizing Recent Experience to the agent if set to 1, default = 0")
+parser.add_argument("-n_step", type=int, default=1, help="Using n-step bootstrapping, default=1")
+parser.add_argument("-info", type=str, default="rwip", help="Information or name of the run")
+parser.add_argument("-d2rl", type=int, choices=[0, 1], default=0,
+                    help="Uses Deep Actor and Deep Critic Networks if set to 1 as described in the D2RL Paper: https://arxiv.org/pdf/2010.09163.pdf, default=0")
+parser.add_argument("-frames", type=int, default=50000,
+                    help="The amount of training interactions with the environment, default is 1mio")
+parser.add_argument("-eval_every", type=int, default=1000,
+                    help="Number of interactions after which the evaluation runs are performed, default = 1000")
+parser.add_argument("-eval_runs", type=int, default=3, help="Number of evaluation runs performed, default = 1")
+parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
+parser.add_argument("--n_updates", type=int, default=1,
+                    help="Update-to-Data (UTD) ratio, updates taken per step with the environment, default=1")
+parser.add_argument("-lr_a", type=float, default=3e-4,
+                    help="Actor learning rate of adapting the network weights, default is 3e-4")
+parser.add_argument("-lr_c", type=float, default=3e-4,
+                    help="Critic learning rate of adapting the network weights, default is 3e-4")
+parser.add_argument("-a", "--alpha", type=float,
+                    help="entropy alpha value, if not choosen the value is leaned by the agent")
+parser.add_argument("-layer_size", type=int, default=256,
+                    help="Number of nodes per neural network layer, default is 256")
+parser.add_argument("-repm", "--replay_memory", type=int, default=int(1e6),
+                    help="Size of the Replay memory, default is 1e6")
+parser.add_argument("-bs", "--batch_size", type=int, default=256, help="Batch size, default is 256")
+parser.add_argument("-t", "--tau", type=float, default=0.005, help="Softupdate factor tau, default is 0.005")
+parser.add_argument("-g", "--gamma", type=float, default=0.99, help="discount factor gamma, default is 0.99")
+parser.add_argument("-s", "--saved_model", type=str, default=None, help="Load a saved model to perform a test run!")
+parser.add_argument("-w", "--worker", type=int, default=1, help="Number of parallel worker, default = 1")
+parser.add_argument("-r", "--render_evals", type=int, default=0, choices=[0, 1],
+                    help="Rendering the evaluation runs if set to 1, default=0")
+parser.add_argument("--trial", type=int, default=0, help="trial")
+parser.add_argument("--rep_max", type=int, default=500, help="maximum steps in one episode")
+args = parser.parse_args()
+
+env = The_cool_bike()
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("Using device: {}".format(device))
+
+state_size = 3
+action_size = 1
+
+agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
 
 
 class The_cool_bike():
@@ -51,7 +108,7 @@ def timer(start, end):
     print("\nTraining Time:  {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
 
 
-def evaluate(agent, frame, args, eval_runs=5, capture=False):
+def evaluate(frame, args, eval_runs=5, capture=False):
     """
     Makes an evaluation run with the current episode
     """
@@ -176,7 +233,7 @@ def evaluate(agent, frame, args, eval_runs=5, capture=False):
     #    writer.add_scalar("Reward", np.mean(reward_batch), frame)
 
 
-def run(agent, args):
+def run(args):
     rep_max = args.rep_max
 
     """Deep Q-Learning.
@@ -263,53 +320,29 @@ def run(agent, args):
             episode_K = 0
 
 
-parser = argparse.ArgumentParser(description="")
-parser.add_argument("-env", type=str, default="HalfCheetahBulletEnv-v0",
-                    help="Environment name, default = HalfCheetahBulletEnv-v0")
-parser.add_argument("-per", type=int, default=0, choices=[0, 1],
-                    help="Adding Priorizied Experience Replay to the agent if set to 1, default = 0")
-parser.add_argument("-munchausen", type=int, default=0, choices=[0, 1],
-                    help="Adding Munchausen RL to the agent if set to 1, default = 0")
-parser.add_argument("-dist", "--distributional", type=int, default=0, choices=[0, 1],
-                    help="Using a distributional IQN Critic if set to 1, default=0")
-parser.add_argument("-ere", type=int, default=0, choices=[0, 1],
-                    help="Adding Emphasizing Recent Experience to the agent if set to 1, default = 0")
-parser.add_argument("-n_step", type=int, default=1, help="Using n-step bootstrapping, default=1")
-parser.add_argument("-info", type=str, default="rwip", help="Information or name of the run")
-parser.add_argument("-d2rl", type=int, choices=[0, 1], default=0,
-                    help="Uses Deep Actor and Deep Critic Networks if set to 1 as described in the D2RL Paper: https://arxiv.org/pdf/2010.09163.pdf, default=0")
-parser.add_argument("-frames", type=int, default=50000,
-                    help="The amount of training interactions with the environment, default is 1mio")
-parser.add_argument("-eval_every", type=int, default=1000,
-                    help="Number of interactions after which the evaluation runs are performed, default = 1000")
-parser.add_argument("-eval_runs", type=int, default=3, help="Number of evaluation runs performed, default = 1")
-parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
-parser.add_argument("--n_updates", type=int, default=1,
-                    help="Update-to-Data (UTD) ratio, updates taken per step with the environment, default=1")
-parser.add_argument("-lr_a", type=float, default=3e-4,
-                    help="Actor learning rate of adapting the network weights, default is 3e-4")
-parser.add_argument("-lr_c", type=float, default=3e-4,
-                    help="Critic learning rate of adapting the network weights, default is 3e-4")
-parser.add_argument("-a", "--alpha", type=float,
-                    help="entropy alpha value, if not choosen the value is leaned by the agent")
-parser.add_argument("-layer_size", type=int, default=256,
-                    help="Number of nodes per neural network layer, default is 256")
-parser.add_argument("-repm", "--replay_memory", type=int, default=int(1e6),
-                    help="Size of the Replay memory, default is 1e6")
-parser.add_argument("-bs", "--batch_size", type=int, default=256, help="Batch size, default is 256")
-parser.add_argument("-t", "--tau", type=float, default=0.005, help="Softupdate factor tau, default is 0.005")
-parser.add_argument("-g", "--gamma", type=float, default=0.99, help="discount factor gamma, default is 0.99")
-parser.add_argument("-s", "--saved_model", type=str, default=None, help="Load a saved model to perform a test run!")
-parser.add_argument("-w", "--worker", type=int, default=1, help="Number of parallel worker, default = 1")
-parser.add_argument("-r", "--render_evals", type=int, default=0, choices=[0, 1],
-                    help="Rendering the evaluation runs if set to 1, default=0")
-parser.add_argument("--trial", type=int, default=0, help="trial")
-parser.add_argument("--rep_max", type=int, default=500, help="maximum steps in one episode")
-args = parser.parse_args()
+class Node_RL(Node):
+
+    def __init__(self):
+        super().__init__('node_rl')
+        self.imu_sub = self.create_subscription(
+            Float64, 'list_deg', self.imu_callback, 10)
+        self.imu_sub  # prevent unused variable warning
+
+        self.motor_sub = self.create_subscription(
+            Float64, 'speed_feedback', self.imu_callback, 10)
+        self.motor_sub  # prevent unused variable warning
+
+    def imu_callback(self, msg):
+        self.get_logger().info('I heard: "%s"' % msg.data)
+
+    def imu_callback(self, msg):
+        self.get_logger().info('I heard: "%s"' % msg.data)
 
 
 #if __name__ == "__main__":
 def main(args=args):
+    rclpy.init(args=args)
+    node_rl = Node_RL()
 
     #if args.saved_model == None:
     #    writer = SummaryWriter("runs_v3/" + args.info + str(args.trial))
@@ -318,24 +351,14 @@ def main(args=args):
 
     #envs = Pendulum(args.render_evals, args.seed)
     #eval_env = Pendulum(args.render_evals, args.seed + 1)
-    env = The_cool_bike()
-
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    print("Using device: {}".format(device))
-
-    state_size = 3
-    action_size = 1
-
-    agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
-
     t0 = time.time()
     print("###########################")
 
     if args.saved_model != None:
         agent.actor_local.load_state_dict(torch.load(args.saved_model, map_location=device))
-        evaluate(agent=agent, frame=None, args=args, capture=False)
+        evaluate(frame=None, args=args, capture=False)
     else:
-        run(agent, args)
+        run(args)
         t1 = time.time()
         timer(t0, t1)
 
@@ -351,6 +374,9 @@ def main(args=args):
     #if args.saved_model == None:
     #    writer.close()
 
+    rclpy.spin(node_rl)
+    node_rl.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == "__main__":
     main()

@@ -3,7 +3,7 @@ from rclpy.node import Node
 
 from std_msgs.msg import Float64
 
-from .rmdx8 import *
+#from .rmdx8 import *
 import numpy as np
 import time
 
@@ -22,7 +22,7 @@ class Motor(Node):
         self.subscription
         timer_period = 1 # seconds
 
-        self.motor = RmdX8()
+        #self.motor = RmdX8()
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.i = 0
 
@@ -35,15 +35,16 @@ class Motor(Node):
 
         Iq_cmd = 20 # for test
 
-        self.motor.cmd_send("TORQUE", np.uint16(Iq_cmd))
+        '''self.motor.cmd_send("TORQUE", np.uint16(Iq_cmd))
         time.sleep(0.005)
         q2_dot = self.motor.speed_feedback
 
 
-        msg.data = q2_dot
+        msg.data = q2_dot'''
+        msg.data = 55
         self.publisher_.publish(msg)
 
-        print(time.time())
+        #print(time.time())
 
         self.get_logger().info('Publishing: "%f"' % msg.data)
 
