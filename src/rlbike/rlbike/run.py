@@ -5,8 +5,8 @@ from collections import deque
 import torch
 import time
 import argparse
-from .files import MultiPro
-from .files.Agent import Agent
+#from .files import MultiPro
+#from .files.Agent import Agent
 import json
 import matplotlib.pyplot as plt
 from math import pi
@@ -19,7 +19,7 @@ from std_msgs.msg import Float64
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-frames", type=int, default=50000,
                     help="The amount of training interactions with the environment, default is 1mio")
-args = parser.parse_args()
+args, unknown = parser.parse_known_args()
 
 
 class The_cool_bike():
@@ -58,7 +58,7 @@ env = The_cool_bike()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Using device: {}".format(device))
 
-agent = Agent(state_size=3, action_size=1, args=args, device=device)
+#agent = Agent(state_size=3, action_size=1, args=args, device=device)
 
 
 def timer(start, end):
@@ -224,11 +224,11 @@ class Node_RL(Node):
         self.get_logger().info('I heard: "%s"' % msg.data)
 
     def timer_callback(self):
-        self.action = agent.act(self.state)
+#        self.action = agent.act(self.state)
         self.next_state = np.array([0, 0, 0], dtype=np.float32)
         self.reward = 0
         self.done = False
-        agent.step(self.state, self.action, self.reward, self.next_state, [self.done], self.frame, self.ERE)
+#        agent.step(self.state, self.action, self.reward, self.next_state, [self.done], self.frame, self.ERE)
         self.frame += 1
         self.state = self.next_state
         self.score += np.mean(self.reward)
