@@ -232,7 +232,50 @@ def evaluate(frame, args, eval_runs=5, capture=False):
     #    writer.add_scalar("Reward", np.mean(reward_batch), frame)
 
 
+class Node_RL(Node):
+
+    def __init__(self):
+        super().__init__('node_rl')
+
+        self.imu_sub = self.create_subscription(
+            Float64, 'list_deg', self.imu_callback, 10)
+        self.imu_sub  # prevent unused variable warning
+
+        self.motor_sub = self.create_subscription(
+            Float64, 'speed_feedback', self.imu_callback, 10)
+        self.motor_sub  # prevent unused variable warning
+
+        self.scores = []  # list containing scores from each episode
+        self.scores_window = deque(maxlen=100)  # last 100 scores
+        self.i_episode = 1
+        self.state = np.array([0, 0, 0], dtype=np.float32)
+        self.score = 0
+        self.frames = args.frames // args.worker
+        self.ERE = args.ere
+
+        timer_period = 1 # seconds
+        self.timer = self.create_timer(timer_period, self.timer_callback)
+
+    def imu_callback(self, msg):
+        self.get_logger().info('I heard: "%s"' % msg.data)
+
+    def imu_callback(self, msg):
+        self.get_logger().info('I heard: "%s"' % msg.data)
+
+    def timer_callback(self):
+        self.action = agent.act(self.state)
+        self.next_state = np.array([0, 0, 0], dtype=np.float32)
+        self.reward = 0
+        self.done = False
+        agent.step(self.state, self.action, self.reward, self.next_state, [self.done], self.frame, self.ERE)
+        self.state = self.next_state
+        self.score += np.mean(self.reward)
+
+
 def run(args):
+    rclpy.init(args=None)
+    node_rl = Node_RL()
+
     rep_max = args.rep_max
 
     """Deep Q-Learning.
@@ -318,27 +361,9 @@ def run(args):
             score = 0
             episode_K = 0
 
-
-class Node_RL(Node):
-
-    def __init__(self):
-        super().__init__('node_rl')
-
-        self.imu_sub = self.create_subscription(
-            Float64, 'list_deg', self.imu_callback, 10)
-        self.imu_sub  # prevent unused variable warning
-
-        self.motor_sub = self.create_subscription(
-            Float64, 'speed_feedback', self.imu_callback, 10)
-        self.motor_sub  # prevent unused variable warning
-
-
-
-    def imu_callback(self, msg):
-        self.get_logger().info('I heard: "%s"' % msg.data)
-
-    def imu_callback(self, msg):
-        self.get_logger().info('I heard: "%s"' % msg.data)
+    rclpy.spin(node_rl)
+    node_rl.destroy_node()
+    rclpy.shutdown()
 
 
 #if __name__ == "__main__":
@@ -346,7 +371,7 @@ def main(args=args):
     rclpy.init(args=None)
     node_rl = Node_RL()
 
-    #if args.saved_model == None:
+    '''#if args.saved_model == None:
     #    writer = SummaryWriter("runs_v3/" + args.info + str(args.trial))
     # envs = MultiPro.SubprocVecEnv([lambda: gym.make(args.env) for i in range(args.worker)])
     # eval_env = gym.make(args.env)
@@ -370,7 +395,7 @@ def main(args=args):
 
         # save parameter
         with open('/home/nvidia/ros2_rlbike/runs_v3/{}{}/'.format(args.info, args.trial) + args.info + str(args.trial) + ".json", 'w') as f:
-            json.dump(args.__dict__, f, indent=2)
+            json.dump(args.__dict__, f, indent=2)'''
 
     #eval_env.close()
     #if args.saved_model == None:
