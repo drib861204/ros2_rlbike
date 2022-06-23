@@ -8,7 +8,10 @@ def generate_launch_description():
             node_executable='run',
             node_name='node_rl',
             output='screen',
-            emulate_tty=True
+            emulate_tty=True,
+            parameters=[
+                {"frames": 50000}
+            ]
         ),
         Node(  
             package='rlbike',
