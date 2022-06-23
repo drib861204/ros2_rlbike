@@ -20,15 +20,11 @@ class Motor(Node):
             10
         )
         self.subscription
-        timer_period = 1 # seconds
+        timer_period = 0.5 # seconds
 
         #self.motor = RmdX8()
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.i = 0
-
-        for _ in range(100):
-            print("test_for_loop")
-            time.sleep(1)
 
     def listener_callback(self, msg):
         self.get_logger().info('I heard: "%s"' % msg.data)
@@ -46,7 +42,7 @@ class Motor(Node):
 
         msg.data = q2_dot'''
         msg.data = 55.0
-        #self.publisher_.publish(msg)
+        self.publisher_.publish(msg)
 
         #print(time.time())
 
@@ -56,12 +52,8 @@ def main(args=None):
     rclpy.init(args=args)
 
     motor_m = Motor()
-    
-    print("test1")
 
-    rclpy.spin_once(motor_m)
-
-    print("test2")
+    rclpy.spin(motor_m)
 
     motor_m.destroy_node()
     rclpy.shutdown()

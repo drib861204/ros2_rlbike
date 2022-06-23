@@ -272,7 +272,8 @@ class Node_RL(Node):
         self.frame += 1
         self.state = self.next_state
         self.score += np.mean(self.reward)
-
+        print("training")
+        self.get_logger().info('training_info')
 
 def run(args):
     rclpy.init(args=None)

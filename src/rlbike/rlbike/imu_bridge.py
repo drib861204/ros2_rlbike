@@ -11,7 +11,7 @@ class IMU(Node):
     def __init__(self):
         super().__init__('imu_bridge')
         self.publisher_ = self.create_publisher(Float64, 'list_deg', 10)
-        timer_period = 0.005
+        timer_period = 0.25
 
         '''nRST_PIN = 21
         time.sleep(0.1)
