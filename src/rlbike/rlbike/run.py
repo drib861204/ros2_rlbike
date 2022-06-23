@@ -97,10 +97,7 @@ env = The_cool_bike()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Using device: {}".format(device))
 
-state_size = 3
-action_size = 1
-
-agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
+agent = Agent(state_size=3, action_size=1, args=args, device=device)
 
 
 def timer(start, end):
@@ -326,6 +323,7 @@ class Node_RL(Node):
 
     def __init__(self):
         super().__init__('node_rl')
+
         self.imu_sub = self.create_subscription(
             Float64, 'list_deg', self.imu_callback, 10)
         self.imu_sub  # prevent unused variable warning
@@ -333,6 +331,8 @@ class Node_RL(Node):
         self.motor_sub = self.create_subscription(
             Float64, 'speed_feedback', self.imu_callback, 10)
         self.motor_sub  # prevent unused variable warning
+
+
 
     def imu_callback(self, msg):
         self.get_logger().info('I heard: "%s"' % msg.data)

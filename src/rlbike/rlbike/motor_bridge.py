@@ -46,7 +46,8 @@ class Motor(Node):
 
         #print(time.time())
 
-        self.get_logger().info('Publishing: "%f"' % msg.data)
+        while(1):
+            self.get_logger().info('Publishing: "%f"' % msg.data)
 
 
 def main(args=None):
@@ -54,8 +55,7 @@ def main(args=None):
 
     motor_m = Motor()
     
-    while(1):
-        print("test1")
+    print("test1")
 
     rclpy.spin(motor_m)
 
