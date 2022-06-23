@@ -14,6 +14,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
 
+
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-env", type=str, default="HalfCheetahBulletEnv-v0",
                     help="Environment name, default = HalfCheetahBulletEnv-v0")
@@ -57,16 +58,6 @@ parser.add_argument("-r", "--render_evals", type=int, default=0, choices=[0, 1],
 parser.add_argument("--trial", type=int, default=0, help="trial")
 parser.add_argument("--rep_max", type=int, default=500, help="maximum steps in one episode")
 args = parser.parse_args()
-
-env = The_cool_bike()
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print("Using device: {}".format(device))
-
-state_size = 3
-action_size = 1
-
-agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
 
 
 class The_cool_bike():
@@ -379,4 +370,14 @@ def main(args=args):
     rclpy.shutdown()
 
 if __name__ == "__main__":
+    env = The_cool_bike()
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print("Using device: {}".format(device))
+
+    state_size = 3
+    action_size = 1
+
+    agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
+
     main()
