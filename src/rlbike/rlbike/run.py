@@ -92,16 +92,6 @@ class The_cool_bike():
         return np.array(self.state, dtype=np.float32), -costs, done, {}
 
 
-env = The_cool_bike()
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print("Using device: {}".format(device))
-
-state_size = 3
-action_size = 1
-
-agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
-
 
 def timer(start, end):
     """ Helper to print training time """
@@ -379,6 +369,18 @@ def main(args=args):
     rclpy.spin(node_rl)
     node_rl.destroy_node()
     rclpy.shutdown()
+
+
+env = The_cool_bike()
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("Using device: {}".format(device))
+
+state_size = 3
+action_size = 1
+
+agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
+
 
 if __name__ == "__main__":
     main()
