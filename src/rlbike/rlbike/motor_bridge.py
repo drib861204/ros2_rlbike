@@ -26,6 +26,10 @@ class Motor(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.i = 0
 
+        for _ in range(100):
+            print("test_for_loop")
+            time.sleep(1)
+
     def listener_callback(self, msg):
         self.get_logger().info('I heard: "%s"' % msg.data)
 
@@ -46,9 +50,7 @@ class Motor(Node):
 
         #print(time.time())
 
-        while(1):
-            self.get_logger().info('Publishing: "%f"' % msg.data)
-
+        self.get_logger().info('Publishing: "%f"' % msg.data)
 
 def main(args=None):
     rclpy.init(args=args)
@@ -57,7 +59,7 @@ def main(args=None):
     
     print("test1")
 
-    rclpy.spin(motor_m)
+    rclpy.spin_once(motor_m)
 
     print("test2")
 
