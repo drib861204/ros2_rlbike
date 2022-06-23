@@ -41,8 +41,9 @@ class IMU(Node):
         q1 = list_deg[1]
         q1_dot = list_rate[1]'''
 
-        msg.data = 77
+        msg.data = 77.0
         self.publisher_.publish(msg)
+        self.get_logger().info('Publishing: "%f"' % msg.data)
 
 def main(args=None):
     rclpy.init(args=args)

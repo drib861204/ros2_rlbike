@@ -294,7 +294,7 @@ def run(args):
         #    agent.step(s, a, r, ns, d, frame, ERE)
         agent.step(state, action, reward, next_state, [done], frame, ERE)
 
-        print(time.time())
+        #print(time.time())
 
         if ERE:
             eta_t = eta_0 + (eta_T - eta_0) * (frame / (frames + 1))
@@ -312,7 +312,7 @@ def run(args):
             scores_window.append(score)  # save most recent score
             scores.append(score)  # save most recent score
             #writer.add_scalar("Average100", np.mean(scores_window), frame * worker)
-            print('\rEpisode {}\tFrame: [{}/{}]\t Reward: {:.2f} \tAverage100 Score: {:.2f}'.format(i_episode * worker, frame * worker, frames, score, np.mean(scores_window)), end="", flush=True)
+            print('Episode {}\tFrame: [{}/{}]\t Reward: {:.2f} \tAverage100 Score: {:.2f}'.format(i_episode * worker, frame * worker, frames, score, np.mean(scores_window)))#, end="", flush=True)
             # if i_episode % 100 == 0:
             #    print('\rEpisode {}\tFrame \tReward: {}\tAverage100 Score: {:.2f}'.format(i_episode*worker, frame*worker, round(eval_reward,2), np.mean(scores_window)), end="", flush=True)
             i_episode += 1
@@ -343,7 +343,7 @@ class Node_RL(Node):
 
 #if __name__ == "__main__":
 def main(args=args):
-    rclpy.init(args=args)
+    rclpy.init(args=None)
     node_rl = Node_RL()
 
     #if args.saved_model == None:

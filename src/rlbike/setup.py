@@ -22,7 +22,7 @@ setup(
     entry_points={
         'console_scripts': [
                 'run = rlbike.run:main',
-		        'motor_bridge = rlbike.motor_bridge:main'
+		        'motor_bridge = rlbike.motor_bridge:main',
 		        'imu_bridge = rlbike.imu_bridge:main'
         ],
     },

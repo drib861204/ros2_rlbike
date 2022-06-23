@@ -41,8 +41,8 @@ class Motor(Node):
 
 
         msg.data = q2_dot'''
-        msg.data = 55
-        self.publisher_.publish(msg)
+        msg.data = 55.0
+        #self.publisher_.publish(msg)
 
         #print(time.time())
 
@@ -53,8 +53,13 @@ def main(args=None):
     rclpy.init(args=args)
 
     motor_m = Motor()
+    
+    while(1):
+        print("test1")
 
     rclpy.spin(motor_m)
+
+    print("test2")
 
     motor_m.destroy_node()
     rclpy.shutdown()
