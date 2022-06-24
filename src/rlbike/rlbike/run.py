@@ -13,7 +13,7 @@ from math import pi
 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Float64MultiArray
 
 
 parser = argparse.ArgumentParser(description="")
@@ -198,12 +198,14 @@ class Node_RL(Node):
     def __init__(self):
         super().__init__('node_rl')
 
+        self.iq_cmd_pub = self.create_publisher(Float64, 'iq_cmd', 10)
+
         self.imu_sub = self.create_subscription(
-            Float64, 'list_deg', self.imu_callback, 10)
+            Float64MultiArray, 'list_deg', self.imu_callback, 10)
         self.imu_sub  # prevent unused variable warning
 
         self.motor_sub = self.create_subscription(
-            Float64, 'speed_feedback', self.imu_callback, 10)
+            Float64, 'speed_feedback', self.motor_callback, 10)
         self.motor_sub  # prevent unused variable warning
 
         self.frame = 1
@@ -214,13 +216,13 @@ class Node_RL(Node):
         self.score = 0
         self.frames = args.frames
 
-        timer_period = 1 # seconds
+        timer_period = 3 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def imu_callback(self, msg):
-        self.get_logger().info('I heard: "%s"' % msg.data)
+        self.get_logger().info('I heard: (%f,%f,%f)' % (msg.data[0], msg.data[1], msg.data[2]))
 
-    def imu_callback(self, msg):
+    def motor_callback(self, msg):
         self.get_logger().info('I heard: "%s"' % msg.data)
 
     def timer_callback(self):
@@ -233,7 +235,10 @@ class Node_RL(Node):
         self.state = self.next_state
         self.score += np.mean(self.reward)
         print("training")
-        self.get_logger().info('training_info')
+        Iq_cmd_pub_msg = Float64()
+        Iq_cmd_pub_msg.data = 20.0
+        self.iq_cmd_pub.publish(Iq_cmd_pub_msg)
+        self.get_logger().info('Publishing: "%f"' % Iq_cmd_pub_msg.data)
 
 
 def main(args=args):

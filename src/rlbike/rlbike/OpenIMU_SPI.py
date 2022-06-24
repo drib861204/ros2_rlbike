@@ -124,7 +124,8 @@ class SpiOpenIMU:
             acc.append(self.combine_reg(resp[12],resp[13])/4000)
             acc.append(self.combine_reg(resp[14],resp[15])/4000)     
             #unit:deg
-            if ('330BI' in self.module) and first_register == 0x3F:
+            #if ('330BI' in self.module) and first_register == 0x3F:
+            if ('300ZI' in self.module) and first_register == 0x3D:
                 deg.append(self.combine_reg(resp[18],resp[19]) * 360/65536)
                 deg.append(self.combine_reg(resp[20],resp[21]) * 360/65536)
                 deg.append(self.combine_reg(resp[22],resp[23]) * 360/65536)

@@ -36,7 +36,7 @@ class RmdX8:
     def send_one(self, data=None):
         if data is None:
             data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-        with can.interface.Bus() as bus:
+        with can.ThreadSafeBus() as bus:
             msg = can.Message(
                 arbitration_id=0x141, data=data, is_extended_id=False
             )

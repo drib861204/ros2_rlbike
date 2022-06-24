@@ -3,7 +3,7 @@ from rclpy.node import Node
 
 from std_msgs.msg import Float64
 
-#from .rmdx8 import *
+from .rmdx8 import *
 import numpy as np
 import time
 
@@ -12,7 +12,12 @@ class Motor(Node):
 
     def __init__(self):
         super().__init__('motor_bridge')
-        self.publisher_ = self.create_publisher(Float64, 'speed_feedback', 10)
+
+        self.motor = RmdX8()
+        self.motor.cmd_send("TORQUE", np.uint16(0))
+        time.sleep(1)
+
+        self.publisher_ = self.create_publisher(Float64, 'speed_feedback', 1)
         self.subscription = self.create_subscription(
             Float64,
             'iq_cmd',
@@ -20,33 +25,16 @@ class Motor(Node):
             10
         )
         self.subscription
-        timer_period = 0.5 # seconds
-
-        #self.motor = RmdX8()
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.i = 0
-
-    def listener_callback(self, msg):
-        self.get_logger().info('I heard: "%s"' % msg.data)
 
 
-    def timer_callback(self):
-        msg = Float64()
+    def listener_callback(self, sub_msg):
+        self.get_logger().info('I heard: "%s"' % sub_msg.data)
 
-        Iq_cmd = 20 # for test
-
-        '''self.motor.cmd_send("TORQUE", np.uint16(Iq_cmd))
-        time.sleep(0.005)
-        q2_dot = self.motor.speed_feedback
-
-
-        msg.data = q2_dot'''
-        msg.data = 55.0
-        self.publisher_.publish(msg)
-
-        #print(time.time())
-
-        self.get_logger().info('Publishing: "%f"' % msg.data)
+        pub_msg = Float64()
+        self.motor.cmd_send("TORQUE", np.uint16(sub_msg.data))
+        pub_msg.data = float(self.motor.speed_feedback)
+        self.publisher_.publish(pub_msg)
+        self.get_logger().info('Publishing: "%f"' % pub_msg.data)
 
 def main(args=None):
     rclpy.init(args=args)
