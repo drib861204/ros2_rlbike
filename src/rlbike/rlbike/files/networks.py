@@ -36,7 +36,7 @@ class Actor(nn.Module):
         self.log_std_linear = nn.Linear(hidden_size, action_size)
 
 
-    def reset_parameters(self):
+    def reset_parameters(self, init_w=3e-3):
         self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
         self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
         self.mu.weight.data.uniform_(-init_w, init_w)

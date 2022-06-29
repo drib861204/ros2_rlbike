@@ -212,6 +212,8 @@ class PrioritizedReplay(object):
 
 
     def update_priorities(self, batch_indices, batch_priorities):
+        print(self.priorities)
+        print(batch_indices, batch_priorities)
         for idx, prio in zip(batch_indices, batch_priorities):
             self.priorities[idx] = prio 
 
