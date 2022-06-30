@@ -128,8 +128,6 @@ class Node_RL(Node):
         self.motor_sub  # prevent unused variable warning
 
         self.frame = 1
-        self.scores = []  # list containing scores from each episode
-        self.scores_window = deque(maxlen=100)  # last 100 scores
         self.i_episode = 1
         self.state = np.array([0, 0, 0], dtype=np.float32)
         self.score = 0
@@ -194,8 +192,7 @@ class Node_RL(Node):
                             agent.select_action(np.array(state))
                             + np.random.normal(0, max_action * args.expl_noise, size=action_size)
                     ).clip(-max_action, max_action)
-                action /= env.max_torque
-                next_state, reward, done, _ = env.step(action)
+                next_state, reward, done, _ = env.step(action/env.max_torque)
                 done_bool = float(done) if rep < rep_max else 0
                 replay_buffer.add(state, action, next_state, reward, done_bool)
                 state = next_state
