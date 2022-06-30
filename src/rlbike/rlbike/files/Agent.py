@@ -44,7 +44,7 @@ class Agent():
         self.lo = -1
         self.batch_size = args.batch_size
         self.n_updates = args.n_updates
-        self.buffer_size = int(args.replay_memory)
+        self.buffer_size = int(1e6) #int(args.replay_memory)
         self.gamma = args.gamma
         self.worker = args.worker
         self.tau = args.tau
@@ -52,7 +52,7 @@ class Agent():
 
         self.target_entropy = -action_size  # -dim(A)
 
-        self.FIXED_ALPHA = args.alpha
+        self.FIXED_ALPHA = None #args.alpha
         self.log_alpha = torch.tensor([0.0], requires_grad=True)
         self.alpha = self.log_alpha.exp().detach()
         self.alpha_optimizer = optim.Adam(params=[self.log_alpha], lr=args.lr_a) 

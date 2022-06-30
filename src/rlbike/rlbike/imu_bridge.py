@@ -11,7 +11,7 @@ class IMU(Node):
     def __init__(self):
         super().__init__('imu_bridge')
         self.publisher_ = self.create_publisher(Float64MultiArray, 'list_deg', 10)
-        timer_period = 0.25
+        timer_period = 0.0025
 
         nRST_PIN = 21
         time.sleep(0.1)
@@ -42,9 +42,9 @@ class IMU(Node):
         #q1_dot = list_rate[1]
         #print(list_deg)
 
-        msg.data = list_deg
+        msg.data = [list_deg[1], list_rate[1]]
         self.publisher_.publish(msg)
-        self.get_logger().info('Publishing (%f,%f,%f)' % (msg.data[0], msg.data[1], msg.data[2]))
+        self.get_logger().info('Publishing (%f,%f)' % (msg.data[0], msg.data[1]))
 
 def main(args=None):
     rclpy.init(args=args)

@@ -13,8 +13,8 @@ class Motor(Node):
     def __init__(self):
         super().__init__('motor_bridge')
 
-        self.motor = RmdX8()
-        self.motor.cmd_send("TORQUE", np.uint16(0))
+        #self.motor = RmdX8()
+        #self.motor.cmd_send("TORQUE", np.uint16(0))
         time.sleep(1)
 
         self.publisher_ = self.create_publisher(Float64, 'speed_feedback', 1)
@@ -31,8 +31,9 @@ class Motor(Node):
         self.get_logger().info('I heard: "%s"' % sub_msg.data)
 
         pub_msg = Float64()
-        self.motor.cmd_send("TORQUE", np.uint16(sub_msg.data))
-        pub_msg.data = float(self.motor.speed_feedback)
+        #self.motor.cmd_send("TORQUE", np.uint16(sub_msg.data))
+        #pub_msg.data = float(self.motor.speed_feedback)
+        pub_msg = 54.87
         self.publisher_.publish(pub_msg)
         self.get_logger().info('Publishing: "%f"' % pub_msg.data)
 

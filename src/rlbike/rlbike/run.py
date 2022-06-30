@@ -226,11 +226,11 @@ class Node_RL(Node):
         self.get_logger().info('I heard: "%s"' % msg.data)
 
     def timer_callback(self):
-#        self.action = agent.act(self.state)
+        #self.action = agent.act(self.state)
         self.next_state = np.array([0, 0, 0], dtype=np.float32)
         self.reward = 0
         self.done = False
-#        agent.step(self.state, self.action, self.reward, self.next_state, [self.done], self.frame, self.ERE)
+        #agent.step(self.state, self.action, self.reward, self.next_state, [self.done], self.frame, self.ERE)
         self.frame += 1
         self.state = self.next_state
         self.score += np.mean(self.reward)

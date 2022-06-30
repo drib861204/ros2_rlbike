@@ -24,7 +24,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-                'run = rlbike.run:main',
+                'train = rlbike.train:main',
 		        'motor_bridge = rlbike.motor_bridge:main',
 		        'imu_bridge = rlbike.imu_bridge:main'
         ],

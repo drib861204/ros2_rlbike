@@ -5,13 +5,10 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='rlbike',
-            node_executable='run',
+            node_executable='train',
             node_name='node_rl',
             output='screen',
-            emulate_tty=True,
-            parameters=[
-                {"frames": 50000}
-            ]
+            emulate_tty=True
         ),
         Node(  
             package='rlbike',
