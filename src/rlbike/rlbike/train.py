@@ -19,7 +19,7 @@ from std_msgs.msg import Float64, Float64MultiArray
 
 
 parser = argparse.ArgumentParser(description="")
-parser.add_argument("-type", type=str, default="SAC", help="SAC, TD3, PPO")
+parser.add_argument("-type", type=str, default="TD3", help="SAC, TD3, PPO")
 parser.add_argument("-trial", type=int, default=0, help="trial")
 parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
 parser.add_argument("-lr_a", type=float, default=0.0003, help="learning rate for actor network")
@@ -64,7 +64,7 @@ args, unknown = parser.parse_known_args()
 
 class The_cool_bike():
     def __init__(self):
-        self.max_Iq = 1000 # not sure
+        self.max_Iq = 1000
         self.max_q1 = 3.5*pi/180
         self.max_torque = 21
 
@@ -76,12 +76,12 @@ class The_cool_bike():
 
     def step(self, action):
 
-        Iq_cmd = action * self.max_Iq
+        #Iq_cmd = action * self.max_Iq
 
         #q1 = 1 # from imu
         #q1_dot = 1 # from imu
-        q2_dot = 1 # from motor
-        print("inside env: ", q1, q1_dot)
+        #q2_dot = 1 # from motor
+        print("inside env: ", q1, q1_dot, q2_dot)
 
         self.state = (q1, q1_dot, q2_dot)
         done = bool(
@@ -115,7 +115,7 @@ if args.type == "SAC":
     agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
 
 elif args.type == "TD3":
-    max_action = float(env.max_torque)
+    max_action = float(env.max_Iq)
     kwargs = {
         "state_dim": state_size,
         "action_dim": action_size,
@@ -196,6 +196,9 @@ class Node_RL(Node):
             Float64, 'speed_feedback', self.motor_callback, 10)
         self.motor_sub  # prevent unused variable warning
 
+        self.Iq_cmd_pub_msg = Float64()
+        self.Iq_cmd_pub_msg.data = 0.0
+
         self.frame = 1
         self.i_episode = 1
         self.rep = 1
@@ -216,16 +219,19 @@ class Node_RL(Node):
         self.get_logger().info('I heard: (%f,%f)' % (msg.data[0], msg.data[1]))
 
     def motor_callback(self, msg):
+        global q2_dot
+        q2_dot = msg.data
         self.get_logger().info('I heard: "%s"' % msg.data)
 
     def timer_callback(self):
         print("timestep", time.time())
-        #self.train()
+        self.train()
 
-        #Iq_cmd_pub_msg = Float64()
-        #Iq_cmd_pub_msg.data = 20.0
-        #self.iq_cmd_pub.publish(Iq_cmd_pub_msg)
-        #self.get_logger().info('Publishing: "%f"' % Iq_cmd_pub_msg.data)
+    def pub_iq(self, action):
+        self.Iq_cmd_pub_msg.data = action * env.max_Iq
+        self.Iq_cmd_pub_msg.data = 25.0
+        self.iq_cmd_pub.publish(self.Iq_cmd_pub_msg)
+        self.get_logger().info('Publishing: "%f"' % self.Iq_cmd_pub_msg.data)
 
     def train(self):
         #print("timestep", time.time())
@@ -235,19 +241,25 @@ class Node_RL(Node):
 
         if args.type == "SAC":
             action = agent.act(self.state)
+
+            self.pub_iq(action[0])
+
             next_state, reward, done, _ = env.step(action[0])
             agent.step(self.state, action, reward, next_state, [done], self.frame, 0)
             self.state = next_state
 
         elif args.type == "TD3":
             if self.frame < args.start_timesteps:
-                action = np.random.uniform(low=-env.max_torque, high=env.max_torque)
+                action = np.random.uniform(low=-env.max_Iq, high=env.max_Iq)
             else:
                 action = (
                         agent.select_action(np.array(self.state))
                         + np.random.normal(0, max_action * args.expl_noise, size=action_size)
                 ).clip(-max_action, max_action)
-            next_state, reward, done, _ = env.step(action/env.max_torque)
+
+            self.pub_iq(action/env.max_Iq)
+
+            next_state, reward, done, _ = env.step(action/env.max_Iq)
             done_bool = float(done) if self.rep < self.rep_max else 0
             replay_buffer.add(self.state, action, next_state, reward, done_bool)
             self.state = next_state
@@ -256,6 +268,9 @@ class Node_RL(Node):
 
         elif args.type == "PPO":
             action = agent.select_action(self.state)
+
+            self.pub_iq(action)
+
             self.state, reward, done, _ = env.step(action)
             agent.buffer.rewards.append(reward)
             agent.buffer.is_terminals.append(done)

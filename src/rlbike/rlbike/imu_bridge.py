@@ -11,7 +11,6 @@ class IMU(Node):
     def __init__(self):
         super().__init__('imu_bridge')
         self.publisher_ = self.create_publisher(Float64MultiArray, 'list_deg', 10)
-        timer_period = 0.0025
 
         nRST_PIN = 21
         time.sleep(0.1)
@@ -27,7 +26,7 @@ class IMU(Node):
 
         self.openimu_spi = SpiOpenIMU(target_module="300ZI", fw='26.0.7', cs_pin = 19, interrupt_pin = 26, drdy_status=False)
         
-
+        timer_period = 0.0025
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
