@@ -144,7 +144,7 @@ elif args.type == "PPO":
     agent = PPO(state_size, action_size, lr_actor, lr_critic, gamma, K_epochs, eps_clip, True, action_std)
 
 ###################### logging ######################
-log_dir = f"~/runs_{args.type}/rwip{args.trial}"
+log_dir = f"runs/runs_{args.type}/rwip{args.trial}"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
@@ -208,7 +208,7 @@ class Node_RL(Node):
 
         self.state = env.reset()
 
-        timer_period = 0.005 # seconds
+        timer_period = 0.05 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def imu_callback(self, msg):
