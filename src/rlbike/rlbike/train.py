@@ -189,13 +189,19 @@ log_dir = f"runs_{args.type}/rwip{args.trial}"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-checkpoint_path = log_dir + f"/rwip{args.trial}_{args.seed}.pth"
+current_num_files = next(os.walk(log_dir))[2]
+run_num = len(current_num_files)
+
+checkpoint_path = log_dir + f"/rwip{args.trial}_{run_num}.pth"
 
 log_dir = log_dir + "/log"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-log_f_name = log_dir + f"/{args.type}_log_{args.seed}.csv"
+current_num_files = next(os.walk(log_dir))[2]
+run_num = len(current_num_files)
+
+log_f_name = log_dir + f"/{args.type}_log_{run_num}.csv"
 log_f = open(log_f_name, "w+")
 log_f.write('episode,timestep,raw_reward\n')
 #####################################################
