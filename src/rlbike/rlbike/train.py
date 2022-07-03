@@ -19,7 +19,7 @@ from std_msgs.msg import Float64, Float64MultiArray
 
 
 parser = argparse.ArgumentParser(description="")
-parser.add_argument("-type", type=str, default="TD3", help="SAC, TD3, PPO")
+parser.add_argument("-type", type=str, default="SAC", help="SAC, TD3, PPO")
 parser.add_argument("-trial", type=int, default=0, help="trial")
 parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
 parser.add_argument("-lr_a", type=float, default=0.0003, help="learning rate for actor network")
@@ -66,32 +66,61 @@ class The_cool_bike():
     def __init__(self):
         self.max_Iq = 1000
         self.max_q1 = 3.5*pi/180
+        self.max_q1dot = 0.3
         self.max_torque = 21
+        self.wheel_max_speed = 28
+
+        self.torque = 0
+        self.last_torque = 0
 
     def reset(self):
-        self.ang = 1 # from imu
+        self.ang = q1 # from imu
         self.state = np.array([self.ang, 0, 0], dtype=np.float32)
-    
-        return np.array(self.state, dtype=np.float32)
+        self.agent_state = np.array([abs(self.ang), 0, 0], dtype=np.float32)
+        self.agent_state = self.norm_agent_state(self.agent_state)
+
+        self.last_torque = 0
+
+        return np.array(self.agent_state, dtype=np.float32)
 
     def step(self, action):
 
-        #Iq_cmd = action * self.max_Iq
+        if q1 >= 0:
+            Iq_cmd = action * self.max_Iq
+        else:
+            Iq_cmd = -action * self.max_Iq
 
-        #q1 = 1 # from imu
-        #q1_dot = 1 # from imu
-        #q2_dot = 1 # from motor
-        print("inside env: ", q1, q1_dot, q2_dot)
+        #print("inside env: ", q1, q1_dot, q2_dot, Iq_cmd)
+        #print("inside env type: ", type(q1), type(q1_dot), type(q2_dot), type(Iq_cmd))
 
         self.state = (q1, q1_dot, q2_dot)
-        done = bool(
-                q1 < -self.max_q1
-                or q1 > self.max_q1
-            )
+        if q1 >= 0:
+            self.agent_state = self.state
+        else:
+            self.agent_state = (-self.state[0], -self.state[1], -self.state[2])
+        self.agent_state = self.norm_agent_state(self.agent_state)
 
-        costs = 100 * q1 ** 2 + 1 * q1_dot ** 2
-        
-        return np.array(self.state, dtype=np.float32), -costs, done, {}
+        done = bool(
+            q1 < -self.max_q1
+            or q1 > self.max_q1
+            or q1_dot < -self.max_q1dot
+            or q1_dot > self.max_q1dot
+        )
+
+        costs = 100 * q1 ** 2 + 1 * q1_dot ** 2 + 0.0001 * (self.last_torque - torque) ** 2
+        if done:
+            costs += 100
+
+        self.last_torque = torque
+
+        return np.array(self.agent_state, dtype=np.float32), -costs, done, {}
+
+    def norm_agent_state(self, state):
+        state = (state[0] / self.max_q1,
+                 (state[1] - self.max_q1dot) / (2 * self.max_q1dot),
+                 (state[2] - self.wheel_max_speed) / (2 * self.wheel_max_speed)
+        )
+        return state
 
 
 ########################global variables########################
