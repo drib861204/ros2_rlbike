@@ -11,7 +11,6 @@ from .files.Agent import Agent
 from .utils import ReplayBuffer
 from .TD3 import TD3
 from .PPO import PPO
-#from .test import test
 
 import rclpy
 from rclpy.node import Node
@@ -64,54 +63,66 @@ args, unknown = parser.parse_known_args()
 
 class The_cool_bike():
     def __init__(self):
+        self.max_q1 = 3.5 # deg
+        self.max_q1dot = 0.3*180/pi # deg/sec
         self.max_Iq = 1000
-        self.max_q1 = 3.5*pi/180
-        self.max_q1dot = 0.3
-        self.max_torque = 21
-        self.wheel_max_speed = 28
+        self.wheel_max_speed = 28 # rad/sec
 
-        self.torque = 0
-        self.last_torque = 0
+        self.Iq_cmd = 0
+        self.last_Iq_cmd = 0
 
     def reset(self):
-        self.ang = q1 # from imu
-        self.state = np.array([self.ang, 0, 0], dtype=np.float32)
-        self.agent_state = np.array([abs(self.ang), 0, 0], dtype=np.float32)
+        global q1
+        global q1_dot
+        global q2_dot
+        reset_q1 = q1
+        reset_q1_dot = q1_dot
+        reset_q2_dot = q2_dot
+
+        #self.state = np.array([reset_ang, 0, 0], dtype=np.float32)
+        if reset_q1 >= 0:
+            self.agent_state = np.array([reset_q1, reset_q1_dot, reset_q2_dot], dtype=np.float32)
+        else:
+            self.agent_state = np.array([-reset_q1, -reset_q1_dot, -reset_q2_dot], dtype=np.float32)
+
         self.agent_state = self.norm_agent_state(self.agent_state)
 
-        self.last_torque = 0
+        self.last_Iq_cmd = 0
 
         return np.array(self.agent_state, dtype=np.float32)
 
     def step(self, action):
+        global q1
+        global q1_dot
+        global q2_dot
+        env_q1 = q1
+        env_q1_dot = q1_dot
+        env_q2_dot = q1_dot
 
-        if q1 >= 0:
-            Iq_cmd = action * self.max_Iq
+        if env_q1 >= 0:
+            self.Iq_cmd = action * self.max_Iq
+            self.agent_state = (env_q1, env_q1_dot, env_q2_dot)
         else:
-            Iq_cmd = -action * self.max_Iq
+            self.Iq_cmd = -action * self.max_Iq
+            self.agent_state = (-env_q1, -env_q1_dot, -env_q2_dot)
+        self.agent_state = self.norm_agent_state(self.agent_state)
 
         #print("inside env: ", q1, q1_dot, q2_dot, Iq_cmd)
         #print("inside env type: ", type(q1), type(q1_dot), type(q2_dot), type(Iq_cmd))
-
-        self.state = (q1, q1_dot, q2_dot)
-        if q1 >= 0:
-            self.agent_state = self.state
-        else:
-            self.agent_state = (-self.state[0], -self.state[1], -self.state[2])
-        self.agent_state = self.norm_agent_state(self.agent_state)
+        #self.state = (env_q1, env_q1_dot, env_q2_dot)
 
         done = bool(
-            q1 < -self.max_q1
-            or q1 > self.max_q1
-            or q1_dot < -self.max_q1dot
-            or q1_dot > self.max_q1dot
+            env_q1 < -self.max_q1
+            or env_q1 > self.max_q1
+            or env_q1_dot < -self.max_q1dot
+            or env_q1_dot > self.max_q1dot
         )
 
-        costs = 100 * q1 ** 2 + 1 * q1_dot ** 2 + 0.0001 * (self.last_torque - torque) ** 2
+        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.0001 * (self.last_Iq_cmd - self.Iq_cmd) ** 2
         if done:
             costs += 100
 
-        self.last_torque = torque
+        self.last_Iq_cmd = self.Iq_cmd
 
         return np.array(self.agent_state, dtype=np.float32), -costs, done, {}
 
@@ -154,7 +165,8 @@ elif args.type == "TD3":
         "policy_noise": args.policy_noise * max_action,
         "noise_clip": args.noise_clip * max_action,
         "policy_freq": args.policy_freq,
-        "lr": args.lr
+        "lr_a": args.lr_a,
+        "lr_c": args.lr_c
     }
     agent = TD3(**kwargs)
     replay_buffer = ReplayBuffer(state_size, action_size)
@@ -173,7 +185,7 @@ elif args.type == "PPO":
     agent = PPO(state_size, action_size, lr_actor, lr_critic, gamma, K_epochs, eps_clip, True, action_std)
 
 ###################### logging ######################
-log_dir = f"runs/runs_{args.type}/rwip{args.trial}"
+log_dir = f"runs_{args.type}/rwip{args.trial}"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
@@ -183,10 +195,7 @@ log_dir = log_dir + "/log"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
-current_num_files = next(os.walk(log_dir))[2]
-run_num = len(current_num_files)
-
-log_f_name = log_dir + f"/{args.type}_log_{run_num}.csv"
+log_f_name = log_dir + f"/{args.type}_log_{args.seed}.csv"
 log_f = open(log_f_name, "w+")
 log_f.write('episode,timestep,raw_reward\n')
 #####################################################
@@ -216,17 +225,16 @@ class Node_RL(Node):
         super().__init__('node_rl')
 
         self.iq_cmd_pub = self.create_publisher(Float64, 'iq_cmd', 10)
+        self.Iq_cmd_pub_msg = Float64()
+        self.Iq_cmd_pub_msg.data = 0.0
 
         self.imu_sub = self.create_subscription(
-            Float64MultiArray, 'list_deg', self.imu_callback, 10)
+            Float64MultiArray, 'imu_data', self.imu_callback, 10)
         self.imu_sub  # prevent unused variable warning
 
         self.motor_sub = self.create_subscription(
             Float64, 'speed_feedback', self.motor_callback, 10)
         self.motor_sub  # prevent unused variable warning
-
-        self.Iq_cmd_pub_msg = Float64()
-        self.Iq_cmd_pub_msg.data = 0.0
 
         self.frame = 1
         self.i_episode = 1
@@ -236,6 +244,7 @@ class Node_RL(Node):
         self.episode_reward = 0
 
         self.state = env.reset()
+        self.pub_iq(0.0)
 
         timer_period = 0.05 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -245,25 +254,24 @@ class Node_RL(Node):
         global q1_dot
         q1 = msg.data[0]
         q1_dot = msg.data[1]
-        self.get_logger().info('I heard: (%f,%f)' % (msg.data[0], msg.data[1]))
+        #self.get_logger().info('IMU data: (%f,%f)' % (msg.data[0], msg.data[1]))
 
     def motor_callback(self, msg):
         global q2_dot
         q2_dot = msg.data
-        self.get_logger().info('I heard: "%s"' % msg.data)
+        #self.get_logger().info('motor speed feedback: "%s"' % msg.data)
 
     def timer_callback(self):
-        print("timestep", time.time())
+        #print("timestep", time.time())
         self.train()
 
     def pub_iq(self, action):
         self.Iq_cmd_pub_msg.data = action * env.max_Iq
-        self.Iq_cmd_pub_msg.data = 25.0
+        #self.Iq_cmd_pub_msg.data = 25.0
         self.iq_cmd_pub.publish(self.Iq_cmd_pub_msg)
-        self.get_logger().info('Publishing: "%f"' % self.Iq_cmd_pub_msg.data)
+        #self.get_logger().info('Publishing Iq cmd: "%f"' % self.Iq_cmd_pub_msg.data)
 
     def train(self):
-        #print("timestep", time.time())
 
         self.rep += 1
         self.frame += 1
@@ -318,6 +326,7 @@ class Node_RL(Node):
             self.i_episode += 1
             self.episode_reward = 0
             self.state = env.reset()
+            self.pub_iq(0.0)
 
             save_pth()
 

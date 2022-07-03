@@ -10,7 +10,7 @@ class IMU(Node):
 
     def __init__(self):
         super().__init__('imu_bridge')
-        self.publisher_ = self.create_publisher(Float64MultiArray, 'list_deg', 10)
+        self.publisher_ = self.create_publisher(Float64MultiArray, 'imu_data', 10)
 
         nRST_PIN = 21
         time.sleep(0.1)
@@ -24,9 +24,12 @@ class IMU(Node):
         print("Reset Ready")
         time.sleep(0.1)
 
+        self.q1 = 0
+        self.q1_dot = 0
+
         self.openimu_spi = SpiOpenIMU(target_module="300ZI", fw='26.0.7', cs_pin = 19, interrupt_pin = 26, drdy_status=False)
         
-        timer_period = 0.0025
+        timer_period = 0.02
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
@@ -41,16 +44,25 @@ class IMU(Node):
         #q1_dot = list_rate[1]
         #print(list_deg)
 
-        msg.data = [list_deg[1], list_rate[1]]
+        if list_deg[1] == 0.0 or abs(self.q1 - list_deg[1]) > 5:
+            #print("q1=last q1")
+            pass # q1=last q1
+        else:
+            self.q1 = list_deg[1]
+        if list_rate[1] == 0.0 or abs(self.q1_dot - list_rate[1]) > 50:
+            #print("q1_dot=last q1_dot")
+            pass # q1_dot=last q1_dot
+        else:
+            self.q1_dot = list_rate[1]
+
+        msg.data = [self.q1 + 0.15, self.q1_dot]
         self.publisher_.publish(msg)
-        self.get_logger().info('Publishing (%f,%f)' % (msg.data[0], msg.data[1]))
+        self.get_logger().info('Publishing imu data (%f,%f)' % (msg.data[0], msg.data[1]))
 
 def main(args=None):
     rclpy.init(args=args)
-
     imu_m = IMU()
     rclpy.spin(imu_m)
-
     imu_m.destroy_node()
     rclpy.shutdown()
 

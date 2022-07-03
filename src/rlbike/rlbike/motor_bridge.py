@@ -20,7 +20,8 @@ class Motor(Node):
         self.motor = RmdX8()
         self.motor.cmd_send("TORQUE", np.uint16(0))
 
-        self.publisher_ = self.create_publisher(Float64, 'speed_feedback', 1)
+        self.publisher_ = self.create_publisher(Float64, 'speed_feedback', 10)
+        self.speed_fb_msg = Float64()
         self.subscription = self.create_subscription(
             Float64,
             'iq_cmd',
@@ -29,25 +30,23 @@ class Motor(Node):
         )
         self.subscription
 
-        timer_period = 0.5 #0.0025 # seconds
+        timer_period = 0.02 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def listener_callback(self, iq_cmd_msg):
         global global_iq_cmd
 
         global_iq_cmd = iq_cmd_msg.data
-        self.get_logger().info('I heard: "%s"' % iq_cmd_msg.data)
-        #self.motor.cmd_send("TORQUE", np.uint16(iq_cmd_msg.data))
+        self.get_logger().info('I heard iq cmd: "%s"' % global_iq_cmd)
 
     def timer_callback(self):
         global global_iq_cmd
-        speed_fb_msg = Float64()
 
         self.motor.cmd_send("TORQUE", np.uint16(global_iq_cmd))
 
-        speed_fb_msg.data = float(self.motor.speed_feedback)
-        self.publisher_.publish(speed_fb_msg)
-        self.get_logger().info('Publishing: "%f"' % speed_fb_msg.data)
+        self.speed_fb_msg.data = float(self.motor.speed_feedback)
+        self.publisher_.publish(self.speed_fb_msg)
+        self.get_logger().info('speed feedback: "%f"' % self.speed_fb_msg.data)
 
 def main(args=None):
     rclpy.init(args=args)

@@ -58,7 +58,7 @@ class RmdX8:
                     pass
                     #self.speed_feedback = self.speed_feedback
                 else:
-                    self.speed_feedback = np.int16((msg_recv.data[5]<<8)+(msg_recv.data[4]))
+                    self.speed_feedback = np.int16((msg_recv.data[5]<<8)+(msg_recv.data[4]))*pi/180/6
                 print(f"speed_feedback: {self.speed_feedback}")
 
                 #self.position_feedback = np.int16((msg_recv.data[7]<<8)+(msg_recv.data[6]))
