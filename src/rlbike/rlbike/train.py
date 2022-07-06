@@ -6,7 +6,6 @@ import torch
 import numpy as np
 import argparse
 from collections import deque
-#from Pendulum_v3_mirror import *
 from .files.Agent import Agent
 from .utils import ReplayBuffer
 from .TD3 import TD3
@@ -185,14 +184,21 @@ elif args.type == "PPO":
     agent = PPO(state_size, action_size, lr_actor, lr_critic, gamma, K_epochs, eps_clip, True, action_std)
 
 ###################### logging ######################
-log_dir = f"runs_{args.type}/rwip{args.trial}"
+log_dir = f"/home/ptlab/ros2_rlbike/runs_{args.type}"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+current_files = os.listdir(log_dir)
+files_num = len(current_files)
+
+log_dir = log_dir + f"/rwip{files_num}"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 current_num_files = next(os.walk(log_dir))[2]
 run_num = len(current_num_files)
 
-checkpoint_path = log_dir + f"/rwip{args.trial}_{run_num}.pth"
+checkpoint_path = log_dir + f"/rwip{files_num}_{run_num}.pth"
 
 log_dir = log_dir + "/log"
 if not os.path.exists(log_dir):
@@ -336,13 +342,13 @@ class Node_RL(Node):
 
             save_pth()
 
-            if self.i_episode % self.eval_every_ep == 0:
-                '''eval_reward = test(env=env, agent=agent, args=args)
+            '''if self.i_episode % self.eval_every_ep == 0:
+                eval_reward = test(env=env, agent=agent, args=args)
                 print("\neval_reward", eval_reward)
                 if eval_reward > -10:
                     #break
-                    pass'''
-                pass
+                    pass
+                pass'''
 
 
 def main(args=args):
