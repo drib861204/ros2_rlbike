@@ -44,10 +44,11 @@ class IMU(Node):
         #q1_dot = list_rate[1]
         #print(list_deg)
 
+        bias = 1.5
         if list_deg[0] >= 0:
-            self.q1 = list_deg[0] - 180
+            self.q1 = list_deg[0] - 180 - bias
         else:
-            self.q1 = list_deg[0] + 180
+            self.q1 = list_deg[0] + 180 - bias
 
         self.q1_dot = list_rate[0]
 

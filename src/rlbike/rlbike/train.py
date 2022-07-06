@@ -67,6 +67,8 @@ class The_cool_bike():
         self.max_Iq = 1000
         self.wheel_max_speed = 28 # rad/sec
 
+        self.reset_ang = 1.5 # deg
+
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
 
@@ -117,7 +119,14 @@ class The_cool_bike():
             or env_q1_dot > self.max_q1dot
         )
 
-        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.0001 * (self.last_Iq_cmd - self.Iq_cmd) ** 2
+        # for reward calculating
+        rew_q1 = env_q1 * pi/180
+        rew_q1_dot = env_q1_dot * pi/180
+        torque = self.Iq_cmd * 21/self.max_Iq
+        last_torque = self.last_Iq_cmd * 21/self.max_Iq
+
+
+        costs = 100 * rew_q1 ** 2 + 1 * rew_q1_dot ** 2 + 0.0001 * (last_torque - torque) ** 2
         if done:
             costs += 100
 
@@ -255,8 +264,11 @@ class Node_RL(Node):
         self.eval_every_ep = 10
         self.episode_reward = 0
 
-        self.state = env.reset()
-        self.pub_iq(0.0)
+        self.in_reset_range = False
+        self.training = False
+
+        #self.state = env.reset()
+        #self.pub_iq(0.0)
 
         timer_period = 0.05 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -266,6 +278,12 @@ class Node_RL(Node):
         global q1_dot
         q1 = msg.data[0]
         q1_dot = msg.data[1]
+
+        if abs(q1) < env.reset_ang:
+            self.in_reset_range = True
+        else:
+            self.in_reset_range = False
+
         #self.get_logger().info('IMU data: (%f,%f)' % (msg.data[0], msg.data[1]))
 
     def motor_callback(self, msg):
@@ -275,7 +293,16 @@ class Node_RL(Node):
 
     def timer_callback(self):
         #print("timestep", time.time())
-        self.train()
+        if not self.training:
+            if not self.in_reset_range:
+                print(f"Waiting for reset: |q1| < {env.reset_ang} ...")
+            else:
+                print("Reset ok!")
+                self.state = env.reset()
+                self.pub_iq(0.0)
+                self.training = True
+        else:
+            self.train()
 
     def pub_iq(self, action):
         self.Iq_cmd_pub_msg.data = action * env.max_Iq
@@ -331,6 +358,8 @@ class Node_RL(Node):
         self.episode_reward += reward
 
         if done or self.rep >= self.rep_max:
+            self.training = False
+
             self.rep = 0
             print(f"Episode : {self.i_episode} \t\t Timestep : {self.frame} \t\t Episode Reward : {self.episode_reward}")
             log_f.write('{},{},{}\n'.format(self.i_episode, self.frame, self.episode_reward))
@@ -341,6 +370,17 @@ class Node_RL(Node):
             self.pub_iq(0.0)
 
             save_pth()
+
+            print("Wait for 5 seconds to reset")
+            time.sleep(1)
+            print("4...")
+            time.sleep(1)
+            print("3...")
+            time.sleep(1)
+            print("2...")
+            time.sleep(1)
+            print("1...")
+            time.sleep(1)
 
             '''if self.i_episode % self.eval_every_ep == 0:
                 eval_reward = test(env=env, agent=agent, args=args)
