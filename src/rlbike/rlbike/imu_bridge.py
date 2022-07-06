@@ -44,18 +44,14 @@ class IMU(Node):
         #q1_dot = list_rate[1]
         #print(list_deg)
 
-        if list_deg[1] == 0.0 or abs(self.q1 - list_deg[1]) > 5:
-            #print("q1=last q1")
-            pass # q1=last q1
+        if list_deg[0] >= 0:
+            self.q1 = list_deg[0] - 180
         else:
-            self.q1 = list_deg[1]
-        if list_rate[1] == 0.0 or abs(self.q1_dot - list_rate[1]) > 50:
-            #print("q1_dot=last q1_dot")
-            pass # q1_dot=last q1_dot
-        else:
-            self.q1_dot = list_rate[1]
+            self.q1 = list_deg[0] + 180
 
-        msg.data = [self.q1 + 0.15, self.q1_dot]
+        self.q1_dot = list_rate[0]
+
+        msg.data = [self.q1, self.q1_dot]
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing imu data (%f,%f)' % (msg.data[0], msg.data[1]))
 
