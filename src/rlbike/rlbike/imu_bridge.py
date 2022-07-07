@@ -1,3 +1,4 @@
+from math import pi
 import rclpy
 from rclpy.node import Node
 
@@ -52,7 +53,7 @@ class IMU(Node):
 
         self.q1_dot = list_rate[0]
 
-        msg.data = [self.q1, self.q1_dot]
+        msg.data = [self.q1*pi/180, self.q1_dot*pi/180]
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing imu data (%f,%f)' % (msg.data[0], msg.data[1]))
 
