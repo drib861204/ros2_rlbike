@@ -207,7 +207,7 @@ def transient_response(env, state_action_log, type, seconds):
     axs[0].set_ylabel('q1(deg)')
     axs[1].set_ylabel('q1 dot(deg/s)')
     axs[2].set_ylabel('q2 dot(deg/s)')
-    axs[3].set_ylabel('Iq cmd')
+    axs[3].set_ylabel('torque(Nm)')
     axs[3].set_xlabel('time(s)')
     axs[0].set_ylim([-0.065,0.065])
     axs[1].set_ylim([-0.15,0.15])
