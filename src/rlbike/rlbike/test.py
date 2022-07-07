@@ -17,7 +17,7 @@ from std_msgs.msg import Float64, Float64MultiArray
 
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-type", type=str, default="SAC", help="SAC, TD3, PPO")
-parser.add_argument("-trial", type=int, default=99, help="trial")
+parser.add_argument("-trial", type=int, default=101, help="trial")
 parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
 parser.add_argument("-lr_a", type=float, default=0.0003, help="learning rate for actor network")
 parser.add_argument("-lr_c", type=float, default=0.001, help="learning rate for critic network")
@@ -67,7 +67,7 @@ class The_cool_bike():
         self.wheel_max_speed = 28 # rad/sec
 
         self.reset_ang = 1*pi/180 # rad
-        
+
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
 
@@ -284,11 +284,11 @@ class Node_RL(Node):
             Float64, 'speed_feedback', self.motor_callback, 10)
         self.motor_sub  # prevent unused variable warning
 
-        self.frame = 1
+        self.frame = 0
         self.i_episode = 1
-        self.rep = 1
+        self.rep = 0
         self.rep_max = 500
-        self.plot_response_freq = 1000
+        self.plot_response_freq = 10
         self.episode_reward = 0
         self.state_action_log = np.zeros((1, 4))
 
@@ -296,9 +296,8 @@ class Node_RL(Node):
         self.testing = False
 
         #self.state = env.reset()
+        self.action = 0.0
         self.pub_iq(0.0)
-
-        self.t0 = time.time()
 
         timer_period = 0.05 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -330,10 +329,13 @@ class Node_RL(Node):
                 self.state = env.reset()
                 self.pub_iq(0.0)
                 self.testing = True
+                self.t0 = time.time()
         else:
             self.test()
 
     def pub_iq(self, action):
+        self.action = action
+
         #print(action)
         self.Iq_cmd_pub_msg.data = action * env.max_Iq
         #self.Iq_cmd_pub_msg.data = 25.0
@@ -345,20 +347,10 @@ class Node_RL(Node):
         self.rep += 1
         self.frame += 1
 
-        if args.type == "SAC":
-            action = agent.act(np.expand_dims(self.state, axis=0), eval=True)
-            action = action[0][0]
-        elif args.type == "TD3":
-            action = agent.select_action(np.array(self.state))
-            action /= env.max_Iq
-        elif args.type == "PPO":
-            action = agent.select_action(self.state, test=True)
+        self.state, reward, done, _ = env.step(self.action)
 
-        self.pub_iq(action)
-
-        self.state, reward, done, _ = env.step(action)
         state_for_render = env.state
-        state_action = np.append(state_for_render, action)
+        state_action = np.append(state_for_render, self.action)
         self.state_action_log = np.concatenate((self.state_action_log, np.asmatrix(state_action)), axis=0)
         self.episode_reward += reward
 
@@ -382,11 +374,23 @@ class Node_RL(Node):
             print("1...")
             time.sleep(1)
 
-        if self.rep % self.plot_response_freq == 0:
-            t1 = time.time()
-            hours, seconds = divmod((t1-self.t0), 3600)
-            transient_response(env, self.state_action_log, args.type, seconds)
-            #print("cumulative reward:", self.episode_reward)
+        else:
+            if self.rep % self.plot_response_freq == 0:
+                t1 = time.time()
+                hours, seconds = divmod((t1-self.t0), 3600)
+                transient_response(env, self.state_action_log, args.type, seconds)
+                #print("cumulative reward:", self.episode_reward)
+
+            if args.type == "SAC":
+                action_cmd = agent.act(np.expand_dims(self.state, axis=0), eval=True)
+                action_cmd = action_cmd[0][0]
+            elif args.type == "TD3":
+                action_cmd = agent.select_action(np.array(self.state))
+                action_cmd /= env.max_Iq
+            elif args.type == "PPO":
+                action_cmd = agent.select_action(self.state, test=True)
+
+            self.pub_iq(action_cmd)
 
 
 def main(args=args):

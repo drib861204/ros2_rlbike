@@ -256,9 +256,9 @@ class Node_RL(Node):
             Float64, 'speed_feedback', self.motor_callback, 10)
         self.motor_sub  # prevent unused variable warning
 
-        self.frame = 1
+        self.frame = 0
         self.i_episode = 1
-        self.rep = 1
+        self.rep = 0
         self.rep_max = 500
         self.eval_every_ep = 10
         self.episode_reward = 0
