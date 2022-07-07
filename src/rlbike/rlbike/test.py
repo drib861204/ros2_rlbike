@@ -61,11 +61,13 @@ args, unknown = parser.parse_known_args()
 
 class The_cool_bike():
     def __init__(self):
-        self.max_q1 = 3.5 # deg
-        self.max_q1dot = 0.3*180/pi # deg/sec
-        self.max_Iq = 1000
+        self.max_q1 = 3.5*pi/180 # rad
+        self.max_q1dot = 0.3 # rad/sec
+        self.max_Iq = 1100
         self.wheel_max_speed = 28 # rad/sec
 
+        self.reset_ang = 1*pi/180 # rad
+        
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
 
@@ -78,12 +80,12 @@ class The_cool_bike():
         reset_q2_dot = q2_dot
 
         self.state = np.array([reset_q1, reset_q1_dot, reset_q2_dot], dtype=np.float32)
-        if reset_q1 >= 0:
+        '''if reset_q1 >= 0:
             self.agent_state = np.array([reset_q1, reset_q1_dot, reset_q2_dot], dtype=np.float32)
         else:
-            self.agent_state = np.array([-reset_q1, -reset_q1_dot, -reset_q2_dot], dtype=np.float32)
+            self.agent_state = np.array([-reset_q1, -reset_q1_dot, -reset_q2_dot], dtype=np.float32)'''
 
-        self.agent_state = self.norm_agent_state(self.agent_state)
+        self.agent_state = self.norm_agent_state(self.state)
 
         self.last_Iq_cmd = 0
 
@@ -95,17 +97,18 @@ class The_cool_bike():
         global q2_dot
         env_q1 = q1
         env_q1_dot = q1_dot
-        env_q2_dot = q1_dot
+        env_q2_dot = q2_dot
 
+        self.Iq_cmd = action * self.max_Iq
         self.state = (env_q1, env_q1_dot, env_q2_dot)
 
-        if env_q1 >= 0:
+        '''if env_q1 >= 0:
             self.Iq_cmd = action * self.max_Iq
             self.agent_state = (env_q1, env_q1_dot, env_q2_dot)
         else:
             self.Iq_cmd = -action * self.max_Iq
-            self.agent_state = (-env_q1, -env_q1_dot, -env_q2_dot)
-        self.agent_state = self.norm_agent_state(self.agent_state)
+            self.agent_state = (-env_q1, -env_q1_dot, -env_q2_dot)'''
+        self.agent_state = self.norm_agent_state(self.state)
 
         #print("inside env: ", q1, q1_dot, q2_dot)
 
@@ -116,7 +119,11 @@ class The_cool_bike():
             or env_q1_dot > self.max_q1dot
         )
 
-        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.0001 * (self.last_Iq_cmd - self.Iq_cmd) ** 2
+        # for reward calculating
+        torque = self.Iq_cmd * 21/self.max_Iq
+        last_torque = self.last_Iq_cmd * 21/self.max_Iq
+
+        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.0001 * (last_torque - torque) ** 2
         if done:
             costs += 100
 
@@ -125,7 +132,7 @@ class The_cool_bike():
         return np.array(self.agent_state, dtype=np.float32), -costs, done, {}
 
     def norm_agent_state(self, state):
-        state = (state[0] / self.max_q1,
+        state = ((state[0] - self.max_q1) / (2 * self.max_q1),
                  (state[1] - self.max_q1dot) / (2 * self.max_q1dot),
                  (state[2] - self.wheel_max_speed) / (2 * self.wheel_max_speed)
         )
@@ -196,16 +203,16 @@ def transient_response(env, state_action_log, type, seconds):
     axs[0].plot(t[1:], state_action_log[1:,0])
     axs[1].plot(t[1:], state_action_log[1:,1])
     axs[2].plot(t[1:], state_action_log[1:,2])
-    axs[3].plot(t[1:], state_action_log[1:,3]*env.max_Iq)
+    axs[3].plot(t[1:], state_action_log[1:,3]*21)
     axs[0].set_ylabel('q1(deg)')
     axs[1].set_ylabel('q1 dot(deg/s)')
     axs[2].set_ylabel('q2 dot(deg/s)')
     axs[3].set_ylabel('Iq cmd')
     axs[3].set_xlabel('time(s)')
-    axs[0].set_ylim([-4,4])
-    axs[1].set_ylim([-9,9])
+    axs[0].set_ylim([-0.065,0.065])
+    axs[1].set_ylim([-0.15,0.15])
     axs[2].set_ylim([-34,34])
-    axs[3].set_ylim([-1020,1020])
+    axs[3].set_ylim([-24,24])
     axs[0].get_xaxis().set_visible(False)
     axs[1].get_xaxis().set_visible(False)
     axs[2].get_xaxis().set_visible(False)
@@ -285,7 +292,10 @@ class Node_RL(Node):
         self.episode_reward = 0
         self.state_action_log = np.zeros((1, 4))
 
-        self.state = env.reset()
+        self.in_reset_range = False
+        self.testing = False
+
+        #self.state = env.reset()
         self.pub_iq(0.0)
 
         self.t0 = time.time()
@@ -298,16 +308,30 @@ class Node_RL(Node):
         global q1_dot
         q1 = msg.data[0]
         q1_dot = msg.data[1]
-        self.get_logger().info('IMU data: (%f,%f)' % (msg.data[0], msg.data[1]))
+        #self.get_logger().info('IMU data: (%f,%f)' % (msg.data[0], msg.data[1]))
+
+        if abs(q1) < env.reset_ang:
+            self.in_reset_range = True
+        else:
+            self.in_reset_range = False
 
     def motor_callback(self, msg):
         global q2_dot
         q2_dot = msg.data
-        self.get_logger().info('motor speed feedback: "%s"' % msg.data)
+        #self.get_logger().info('motor speed feedback: "%s"' % msg.data)
 
     def timer_callback(self):
         #print("timestep", time.time())
-        self.test()
+        if not self.testing:
+            if not self.in_reset_range:
+                print(f"Waiting for reset: |q1| < {env.reset_ang} ...")
+            else:
+                print("Reset ok!")
+                self.state = env.reset()
+                self.pub_iq(0.0)
+                self.testing = True
+        else:
+            self.test()
 
     def pub_iq(self, action):
         #print(action)
@@ -338,14 +362,31 @@ class Node_RL(Node):
         self.state_action_log = np.concatenate((self.state_action_log, np.asmatrix(state_action)), axis=0)
         self.episode_reward += reward
 
-        #if done or self.rep >= self.rep_max:
-        #    break
+        if done or self.rep >= self.rep_max:
+            self.testing = False
+
+            self.rep = 0
+            print(f"Episode : {self.i_episode} \t\t Timestep : {self.frame} \t\t Episode Reward : {self.episode_reward}")
+            self.i_episode += 1
+            self.episode_reward = 0
+            self.pub_iq(0.0)
+
+            print("Wait for 5 seconds to reset")
+            time.sleep(1)
+            print("4...")
+            time.sleep(1)
+            print("3...")
+            time.sleep(1)
+            print("2...")
+            time.sleep(1)
+            print("1...")
+            time.sleep(1)
 
         if self.rep % self.plot_response_freq == 0:
             t1 = time.time()
             hours, seconds = divmod((t1-self.t0), 3600)
             transient_response(env, self.state_action_log, args.type, seconds)
-            print("cumulative reward:", self.episode_reward)
+            #print("cumulative reward:", self.episode_reward)
 
 
 def main(args=args):

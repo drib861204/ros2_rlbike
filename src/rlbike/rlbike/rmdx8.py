@@ -16,7 +16,7 @@ class RmdX8:
 
     def cmd_send(self, cmd, Iq): # data = np.uint16(value)
         if cmd == self.SET_TORQUE_CMD:
-            print(f"Set torque to {Iq}")
+            print("Set torque for motor run")
             data = [0xA1, 0x00, 0x00, 0x00, Iq & 0xFF, Iq >> 8, 0x00, 0x00]
             self.send_one(data)
             #print(data)
