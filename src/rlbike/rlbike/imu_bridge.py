@@ -45,7 +45,7 @@ class IMU(Node):
         #q1_dot = list_rate[1]
         #print(list_deg)
 
-        bias = 1.5
+        bias = 0
         if list_deg[0] >= 0:
             self.q1 = list_deg[0] - 180 - bias
         else:
@@ -53,7 +53,8 @@ class IMU(Node):
 
         self.q1_dot = list_rate[0]
 
-        msg.data = [self.q1*pi/180, self.q1_dot*pi/180]
+        #msg.data = [self.q1*pi/180, self.q1_dot*pi/180]
+        msg.data = [self.q1*1000, self.q1_dot*1000]
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing imu data (%f,%f)' % (msg.data[0], msg.data[1]))
 

@@ -62,12 +62,12 @@ args, unknown = parser.parse_known_args()
 
 class The_cool_bike():
     def __init__(self):
-        self.max_q1 = 3.5 # deg
-        self.max_q1dot = 0.3*180/pi # deg/sec
+        self.max_q1 = 3.5*pi/180 # rad
+        self.max_q1dot = 0.3 # rad/sec
         self.max_Iq = 1100
         self.wheel_max_speed = 28 # rad/sec
 
-        self.reset_ang = 1.5 # deg
+        self.reset_ang = 1*pi/180 # rad
 
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
@@ -80,13 +80,13 @@ class The_cool_bike():
         reset_q1_dot = q1_dot
         reset_q2_dot = q2_dot
 
-        #self.state = np.array([reset_ang, 0, 0], dtype=np.float32)
-        if reset_q1 >= 0:
+        self.state = np.array([reset_q1, reset_q1_dot, reset_q2_dot], dtype=np.float32)
+        '''if reset_q1 >= 0:
             self.agent_state = np.array([reset_q1, reset_q1_dot, reset_q2_dot], dtype=np.float32)
         else:
-            self.agent_state = np.array([-reset_q1, -reset_q1_dot, -reset_q2_dot], dtype=np.float32)
+            self.agent_state = np.array([-reset_q1, -reset_q1_dot, -reset_q2_dot], dtype=np.float32)'''
 
-        self.agent_state = self.norm_agent_state(self.agent_state)
+        self.agent_state = self.norm_agent_state(self.state)
 
         self.last_Iq_cmd = 0
 
@@ -98,15 +98,17 @@ class The_cool_bike():
         global q2_dot
         env_q1 = q1
         env_q1_dot = q1_dot
-        env_q2_dot = q1_dot
+        env_q2_dot = q2_dot
 
-        if env_q1 >= 0:
+        self.Iq_cmd = action * self.max_Iq
+        self.state = (env_q1, env_q1_dot, env_q2_dot)
+        '''if env_q1 >= 0:
             self.Iq_cmd = action * self.max_Iq
             self.agent_state = (env_q1, env_q1_dot, env_q2_dot)
         else:
             self.Iq_cmd = -action * self.max_Iq
-            self.agent_state = (-env_q1, -env_q1_dot, -env_q2_dot)
-        self.agent_state = self.norm_agent_state(self.agent_state)
+            self.agent_state = (-env_q1, -env_q1_dot, -env_q2_dot)'''
+        self.agent_state = self.norm_agent_state(self.state)
 
         #print("inside env: ", q1, q1_dot, q2_dot, Iq_cmd)
         #print("inside env type: ", type(q1), type(q1_dot), type(q2_dot), type(Iq_cmd))
@@ -120,13 +122,10 @@ class The_cool_bike():
         )
 
         # for reward calculating
-        rew_q1 = env_q1 * pi/180
-        rew_q1_dot = env_q1_dot * pi/180
         torque = self.Iq_cmd * 21/self.max_Iq
         last_torque = self.last_Iq_cmd * 21/self.max_Iq
 
-
-        costs = 100 * rew_q1 ** 2 + 1 * rew_q1_dot ** 2 + 0.0001 * (last_torque - torque) ** 2
+        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.0001 * (last_torque - torque) ** 2
         if done:
             costs += 100
 
@@ -135,7 +134,7 @@ class The_cool_bike():
         return np.array(self.agent_state, dtype=np.float32), -costs, done, {}
 
     def norm_agent_state(self, state):
-        state = (state[0] / self.max_q1,
+        state = ((state[0] - self.max_q1) / (2 * self.max_q1),
                  (state[1] - self.max_q1dot) / (2 * self.max_q1dot),
                  (state[2] - self.wheel_max_speed) / (2 * self.wheel_max_speed)
         )
@@ -366,7 +365,7 @@ class Node_RL(Node):
             log_f.flush()
             self.i_episode += 1
             self.episode_reward = 0
-            self.state = env.reset()
+            #self.state = env.reset()
             self.pub_iq(0.0)
 
             save_pth()
