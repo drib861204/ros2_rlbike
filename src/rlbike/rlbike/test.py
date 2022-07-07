@@ -17,7 +17,7 @@ from std_msgs.msg import Float64, Float64MultiArray
 
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-type", type=str, default="SAC", help="SAC, TD3, PPO")
-parser.add_argument("-trial", type=int, default=0, help="trial")
+parser.add_argument("-trial", type=int, default=99, help="trial")
 parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
 parser.add_argument("-lr_a", type=float, default=0.0003, help="learning rate for actor network")
 parser.add_argument("-lr_c", type=float, default=0.001, help="learning rate for critic network")
@@ -306,10 +306,11 @@ class Node_RL(Node):
         self.get_logger().info('motor speed feedback: "%s"' % msg.data)
 
     def timer_callback(self):
-        print("timestep", time.time())
+        #print("timestep", time.time())
         self.test()
 
     def pub_iq(self, action):
+        #print(action)
         self.Iq_cmd_pub_msg.data = action * env.max_Iq
         #self.Iq_cmd_pub_msg.data = 25.0
         self.iq_cmd_pub.publish(self.Iq_cmd_pub_msg)
@@ -322,7 +323,7 @@ class Node_RL(Node):
 
         if args.type == "SAC":
             action = agent.act(np.expand_dims(self.state, axis=0), eval=True)
-            action = action[0]
+            action = action[0][0]
         elif args.type == "TD3":
             action = agent.select_action(np.array(self.state))
             action /= env.max_Iq

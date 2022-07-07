@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
                 'train = rlbike.train:main',
+                'test = rlbike.test:main',
 		        'motor_bridge = rlbike.motor_bridge:main',
 		        'imu_bridge = rlbike.imu_bridge:main'
         ],

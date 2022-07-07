@@ -64,7 +64,7 @@ class The_cool_bike():
     def __init__(self):
         self.max_q1 = 3.5 # deg
         self.max_q1dot = 0.3*180/pi # deg/sec
-        self.max_Iq = 1000
+        self.max_Iq = 1100
         self.wheel_max_speed = 28 # rad/sec
 
         self.reset_ang = 1.5 # deg
