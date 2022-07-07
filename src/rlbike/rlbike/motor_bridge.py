@@ -41,7 +41,7 @@ class Motor(Node):
 
     def timer_callback(self):
         global global_iq_cmd
-
+        print("iq_cmd in timer callback", global_iq_cmd)
         self.motor.cmd_send("TORQUE", np.uint16(global_iq_cmd))
 
         self.speed_fb_msg.data = float(self.motor.speed_feedback)
