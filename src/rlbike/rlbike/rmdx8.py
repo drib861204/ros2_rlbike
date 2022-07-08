@@ -55,6 +55,7 @@ class RmdX8:
                 #print(f"data[4]: {hex(msg_recv.data[4])}")
 
                 if msg_recv == None or msg_recv == 0:
+                    print("speed fb = 0")
                     pass
                     #self.speed_feedback = self.speed_feedback
                 else:

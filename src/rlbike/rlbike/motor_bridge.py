@@ -40,6 +40,7 @@ class Motor(Node):
         self.get_logger().info('I heard iq cmd: "%s"' % global_iq_cmd)
 
     def timer_callback(self):
+        print(time.time())
         global global_iq_cmd
         print("iq_cmd in timer callback", global_iq_cmd)
         self.motor.cmd_send("TORQUE", np.uint16(global_iq_cmd))
