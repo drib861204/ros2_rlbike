@@ -209,10 +209,10 @@ def transient_response(env, state_action_log, type, seconds):
     axs[2].set_ylabel('q2 dot(deg/s)')
     axs[3].set_ylabel('torque(Nm)')
     axs[3].set_xlabel('time(s)')
-    axs[0].set_ylim([-0.065,0.065])
+    '''axs[0].set_ylim([-0.065,0.065])
     axs[1].set_ylim([-0.15,0.15])
     axs[2].set_ylim([-34,34])
-    axs[3].set_ylim([-24,24])
+    axs[3].set_ylim([-24,24])'''
     axs[0].get_xaxis().set_visible(False)
     axs[1].get_xaxis().set_visible(False)
     axs[2].get_xaxis().set_visible(False)
@@ -338,7 +338,7 @@ class Node_RL(Node):
 
         #print(action)
         self.Iq_cmd_pub_msg.data = action * env.max_Iq
-        #self.Iq_cmd_pub_msg.data = 25.0
+        self.Iq_cmd_pub_msg.data = 20.0
         self.iq_cmd_pub.publish(self.Iq_cmd_pub_msg)
         self.get_logger().info('Publishing Iq cmd: "%f"' % self.Iq_cmd_pub_msg.data)
 
