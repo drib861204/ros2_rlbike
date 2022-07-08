@@ -11,6 +11,7 @@ class RmdX8:
         self.STATUS = "STATUS"
         
         self.speed_feedback = np.int16(0)
+        self.fb = 0.0
 
         self.bus = can.Bus(receive_own_messages=True)
 
@@ -58,13 +59,13 @@ class RmdX8:
                     pass
                     #self.speed_feedback = self.speed_feedback
                 else:
-                    fb = (msg_recv.data[5]<<8)+(msg_recv.data[4])
+                    self.fb = (msg_recv.data[5]<<8)+(msg_recv.data[4])
 
-                if fb == 0:
+                if self.fb == 0:
                     pass
                     #self.speed_feedback = self.speed_feedback
                 else:
-                    self.speed_feedback = np.int16(fb)*pi/180/6
+                    self.speed_feedback = np.int16(self.fb)*pi/180/6
                 print(f"speed_feedback: {self.speed_feedback}")
 
                 #self.position_feedback = np.int16((msg_recv.data[7]<<8)+(msg_recv.data[6]))
