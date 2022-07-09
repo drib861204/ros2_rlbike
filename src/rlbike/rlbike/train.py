@@ -125,7 +125,7 @@ class The_cool_bike():
         torque = self.Iq_cmd * 21/self.max_Iq
         last_torque = self.last_Iq_cmd * 21/self.max_Iq
 
-        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.0001 * (last_torque - torque) ** 2
+        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.001 * env_q2_dot ** 2
         if done:
             costs += 100
 
@@ -266,6 +266,7 @@ class Node_RL(Node):
         self.in_reset_range = False
         self.training = False
 
+        self.action = 0.0
         #self.state = env.reset()
         #self.pub_iq(0.0)
 
@@ -304,6 +305,8 @@ class Node_RL(Node):
             self.train()
 
     def pub_iq(self, action):
+        self.action = action
+
         self.Iq_cmd_pub_msg.data = action * env.max_Iq
         #self.Iq_cmd_pub_msg.data = 25.0
         self.iq_cmd_pub.publish(self.Iq_cmd_pub_msg)
@@ -314,46 +317,7 @@ class Node_RL(Node):
         self.rep += 1
         self.frame += 1
 
-        if args.type == "SAC":
-            action = agent.act(self.state)
-
-            self.pub_iq(action[0])
-
-            next_state, reward, done, _ = env.step(action[0])
-            agent.step(self.state, action, reward, next_state, [done], self.frame, 0)
-            self.state = next_state
-
-        elif args.type == "TD3":
-            if self.frame < args.start_timesteps:
-                action = np.random.uniform(low=-env.max_Iq, high=env.max_Iq)
-            else:
-                action = (
-                        agent.select_action(np.array(self.state))
-                        + np.random.normal(0, max_action * args.expl_noise, size=action_size)
-                ).clip(-max_action, max_action)
-
-            self.pub_iq(action/env.max_Iq)
-
-            next_state, reward, done, _ = env.step(action/env.max_Iq)
-            done_bool = float(done) if self.rep < self.rep_max else 0
-            replay_buffer.add(self.state, action, next_state, reward, done_bool)
-            self.state = next_state
-            if self.frame >= args.start_timesteps:
-                agent.train(replay_buffer, args.batch_size)
-
-        elif args.type == "PPO":
-            action = agent.select_action(self.state)
-
-            self.pub_iq(action)
-
-            self.state, reward, done, _ = env.step(action)
-            agent.buffer.rewards.append(reward)
-            agent.buffer.is_terminals.append(done)
-            if self.frame % update_timestep == 0:
-                agent.update()
-            if self.frame % action_std_decay_freq == 0:
-                agent.decay_action_std(action_std_decay_rate, min_action_std)
-
+        next_state, reward, done, _ = env.step(self.action)
         self.episode_reward += reward
 
         if done or self.rep >= self.rep_max:
@@ -388,6 +352,45 @@ class Node_RL(Node):
                     #break
                     pass
                 pass'''
+
+        else:
+            if args.type == "SAC":
+                agent.step(self.state, self.action, reward, next_state, [done], self.frame, 0)
+                self.state = next_state
+
+                action_cmd = agent.act(self.state)
+
+                action_cmd = action_cmd[0]
+
+            elif args.type == "TD3":
+                done_bool = float(done) if self.rep < self.rep_max else 0
+                replay_buffer.add(self.state, self.action, next_state, reward, done_bool)
+                self.state = next_state
+                if self.frame >= args.start_timesteps:
+                    agent.train(replay_buffer, args.batch_size)
+
+                if self.frame < args.start_timesteps:
+                    action_cmd = np.random.uniform(low=-env.max_Iq, high=env.max_Iq)
+                else:
+                    action_cmd = (
+                            agent.select_action(np.array(self.state))
+                            + np.random.normal(0, max_action * args.expl_noise, size=action_size)
+                    ).clip(-max_action, max_action)
+
+                action_cmd = action_cmd/env.max_Iq
+
+            elif args.type == "PPO":
+                self.state = next_state
+                agent.buffer.rewards.append(reward)
+                agent.buffer.is_terminals.append(done)
+                if self.frame % update_timestep == 0:
+                    agent.update()
+                if self.frame % action_std_decay_freq == 0:
+                    agent.decay_action_std(action_std_decay_rate, min_action_std)
+
+                action_cmd = agent.select_action(self.state)
+
+            self.pub_iq(action_cmd)
 
 
 def main(args=args):

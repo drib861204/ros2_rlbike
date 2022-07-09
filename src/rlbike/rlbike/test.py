@@ -71,6 +71,8 @@ class The_cool_bike():
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
 
+        self.q1dot_log = []
+
     def reset(self):
         global q1
         global q1_dot
@@ -98,6 +100,9 @@ class The_cool_bike():
         env_q1 = q1
         env_q1_dot = q1_dot
         env_q2_dot = q2_dot
+
+        self.q1dot_log.append(env_q1_dot)
+        print("q2 dot mean: ", np.mean(self.q1dot_log))
 
         self.Iq_cmd = action * self.max_Iq
         self.state = (env_q1, env_q1_dot, env_q2_dot)
@@ -338,7 +343,7 @@ class Node_RL(Node):
 
         #print(action)
         self.Iq_cmd_pub_msg.data = action * env.max_Iq
-        self.Iq_cmd_pub_msg.data = 20.0
+        self.Iq_cmd_pub_msg.data = 0.0
         self.iq_cmd_pub.publish(self.Iq_cmd_pub_msg)
         self.get_logger().info('Publishing Iq cmd: "%f"' % self.Iq_cmd_pub_msg.data)
 
