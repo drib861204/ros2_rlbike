@@ -160,6 +160,7 @@ action_size = 1
 
 if args.type == "SAC":
     agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
+    agent.actor_local.load_state_dict(torch.load(f"/home/ptlab/ros2_rlbike/runs_{args.type}/rwip27/rwip27_0.pth", map_location=device))
 
 elif args.type == "TD3":
     max_action = float(env.max_Iq)
@@ -334,16 +335,16 @@ class Node_RL(Node):
 
             save_pth()
 
-            print("Wait for 5 seconds to reset")
+            print("Wait for 1 second to reset")
             time.sleep(1)
-            print("4...")
+            '''print("4...")
             time.sleep(1)
             print("3...")
             time.sleep(1)
             print("2...")
             time.sleep(1)
             print("1...")
-            time.sleep(1)
+            time.sleep(1)'''
 
             '''if self.i_episode % self.eval_every_ep == 0:
                 eval_reward = test(env=env, agent=agent, args=args)
