@@ -308,7 +308,7 @@ class Node_RL(Node):
     def pub_iq(self, action):
         self.action = action
 
-        self.Iq_cmd_pub_msg.data = action * env.max_Iq
+        self.Iq_cmd_pub_msg.data = self.action * env.max_Iq
         #self.Iq_cmd_pub_msg.data = 25.0
         self.iq_cmd_pub.publish(self.Iq_cmd_pub_msg)
         #self.get_logger().info('Publishing Iq cmd: "%f"' % self.Iq_cmd_pub_msg.data)
