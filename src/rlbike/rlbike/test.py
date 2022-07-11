@@ -66,7 +66,7 @@ class The_cool_bike():
         self.max_Iq = 1100
         self.wheel_max_speed = 28 # rad/sec
 
-        self.reset_ang = 1*pi/180 # rad
+        self.reset_ang = 2*pi/180 # rad
 
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
@@ -99,7 +99,7 @@ class The_cool_bike():
         env_q1_dot = q1_dot
         env_q2_dot = q2_dot
 
-        print("q1: ", env_q1)
+        #print("q1: ", env_q1)
 
         self.Iq_cmd = action * self.max_Iq
         self.state = (env_q1, env_q1_dot, env_q2_dot)
@@ -117,15 +117,15 @@ class The_cool_bike():
         done = bool(
             env_q1 < -self.max_q1
             or env_q1 > self.max_q1
-            or env_q1_dot < -self.max_q1dot
-            or env_q1_dot > self.max_q1dot
+            #or env_q1_dot < -self.max_q1dot
+            #or env_q1_dot > self.max_q1dot
         )
 
         # for reward calculating
         torque = self.Iq_cmd * 21/self.max_Iq
         last_torque = self.last_Iq_cmd * 21/self.max_Iq
 
-        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.0001 * (last_torque - torque) ** 2
+        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.001 * env_q2_dot ** 2
         if done:
             costs += 100
 

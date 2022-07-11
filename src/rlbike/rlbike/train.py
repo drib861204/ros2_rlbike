@@ -10,6 +10,7 @@ from .files.Agent import Agent
 from .utils import ReplayBuffer
 from .TD3 import TD3
 from .PPO import PPO
+import matplotlib.pyplot as plt
 
 import rclpy
 from rclpy.node import Node
@@ -67,7 +68,7 @@ class The_cool_bike():
         self.max_Iq = 1100
         self.wheel_max_speed = 28 # rad/sec
 
-        self.reset_ang = 1*pi/180 # rad
+        self.reset_ang = 2*pi/180 # rad
 
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
@@ -117,9 +118,9 @@ class The_cool_bike():
         done = bool(
             env_q1 < -self.max_q1
             or env_q1 > self.max_q1
-            or env_q1_dot < -self.max_q1dot
-            or env_q1_dot > self.max_q1dot
         )
+            #or env_q1_dot < -self.max_q1dot
+            #or env_q1_dot > self.max_q1dot
 
         # for reward calculating
         torque = self.Iq_cmd * 21/self.max_Iq
@@ -160,7 +161,7 @@ action_size = 1
 
 if args.type == "SAC":
     agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
-    agent.actor_local.load_state_dict(torch.load(f"/home/ptlab/ros2_rlbike/runs_{args.type}/rwip27/rwip27_0.pth", map_location=device))
+    #agent.actor_local.load_state_dict(torch.load(f"/home/ptlab/ros2_rlbike/runs_{args.type}/rwip27/rwip27_0.pth", map_location=device))
 
 elif args.type == "TD3":
     max_action = float(env.max_Iq)
@@ -209,6 +210,10 @@ run_num = len(current_num_files)
 
 checkpoint_path = log_dir + f"/rwip{files_num}_{run_num}.pth"
 
+fig_dir = log_dir + "/fig_training"
+if not os.path.exists(fig_dir):
+    os.makedirs(fig_dir)
+
 log_dir = log_dir + "/log"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
@@ -240,6 +245,36 @@ def save_pth():
         torch.save(agent.policy_old.state_dict(), checkpoint_path)
 
 
+def transient_response(env, state_action_log, type, seconds, fig_file_name):
+    fig, axs = plt.subplots(4)
+    fig.suptitle(f'{type} Transient Response')
+    t = np.linspace(0, seconds, state_action_log.shape[0])
+    axs[0].plot(t[1:], state_action_log[1:,0])
+    axs[0].grid()
+    axs[1].plot(t[1:], state_action_log[1:,1])
+    axs[1].grid()
+    axs[2].plot(t[1:], state_action_log[1:,2])
+    axs[2].grid()
+    axs[3].plot(t[1:], state_action_log[1:,3]*21)
+    axs[3].grid()
+    axs[0].set_ylabel('q1(rad)')
+    axs[1].set_ylabel('q1 dot(rad/s)')
+    axs[2].set_ylabel('q2 dot(rad/s)')
+    axs[3].set_ylabel('torque(Nm)')
+    axs[3].set_xlabel('time(s)')
+    '''axs[0].set_ylim([-0.065,0.065])
+    axs[1].set_ylim([-0.15,0.15])
+    axs[2].set_ylim([-34,34])
+    axs[3].set_ylim([-24,24])'''
+    axs[0].get_xaxis().set_visible(False)
+    axs[1].get_xaxis().set_visible(False)
+    axs[2].get_xaxis().set_visible(False)
+
+    plt.savefig(fig_file_name)
+    plt.close()
+    #plt.show()
+
+
 class Node_RL(Node):
 
     def __init__(self):
@@ -263,6 +298,7 @@ class Node_RL(Node):
         self.rep_max = 500
         self.eval_every_ep = 10
         self.episode_reward = 0
+        self.state_action_log = np.zeros((1, 4))
 
         self.in_reset_range = False
         self.training = False
@@ -270,6 +306,9 @@ class Node_RL(Node):
         self.action = 0.0
         #self.state = env.reset()
         #self.pub_iq(0.0)
+
+        self.fig_file_name = "."
+        self.t0 = time.time()
 
         timer_period = 0.05 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -296,12 +335,21 @@ class Node_RL(Node):
         #print("timestep", time.time())
         if not self.training:
             if not self.in_reset_range:
-                print(f"Waiting for reset: |q1| < {env.reset_ang} ...")
+                pass
+                #print(f"Waiting for reset: |q1| < {env.reset_ang} ...")
             else:
                 print("Reset ok!")
+
+                current_num_files = next(os.walk(fig_dir))[2]
+                run_num = len(current_num_files)
+                self.fig_file_name = fig_dir + f"/response{run_num}"
+
+                self.state_action_log = np.zeros((1, 4))
+
                 self.state = env.reset()
                 self.pub_iq(0.0)
                 self.training = True
+                self.t0 = time.time()
         else:
             self.train()
 
@@ -321,6 +369,10 @@ class Node_RL(Node):
         next_state, reward, done, _ = env.step(self.action)
         self.episode_reward += reward
 
+        state_for_render = env.state
+        state_action = np.append(state_for_render, self.action)
+        self.state_action_log = np.concatenate((self.state_action_log, np.asmatrix(state_action)), axis=0)
+
         if done or self.rep >= self.rep_max:
             self.training = False
 
@@ -332,6 +384,10 @@ class Node_RL(Node):
             self.episode_reward = 0
             #self.state = env.reset()
             self.pub_iq(0.0)
+
+            t1 = time.time()
+            hours, seconds = divmod((t1-self.t0), 3600)
+            transient_response(env, self.state_action_log, args.type, seconds, self.fig_file_name)
 
             save_pth()
 
