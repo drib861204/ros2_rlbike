@@ -17,10 +17,11 @@ from std_msgs.msg import Float64, Float64MultiArray
 
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-type", type=str, default="SAC", help="SAC, TD3, PPO")
-parser.add_argument("-trial", type=int, default=104, help="trial")
+parser.add_argument("-trial", type=int, default=112, help="trial")
 parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
 parser.add_argument("-lr_a", type=float, default=0.0003, help="learning rate for actor network")
 parser.add_argument("-lr_c", type=float, default=0.001, help="learning rate for critic network")
+parser.add_argument("-torque_delay", type=int, default=0, help="consider torque delay. 1: state + last_torque, 2: + last and current torque, 3: original state")
 
 # SAC parameters
 parser.add_argument("-per", type=int, default=0, choices=[0, 1],
@@ -64,9 +65,10 @@ class The_cool_bike():
         self.max_q1 = 3.5*pi/180 # rad
         self.max_q1dot = 0.3 # rad/sec
         self.max_Iq = 1100
+        self.max_torque = 21
         self.wheel_max_speed = 28 # rad/sec
 
-        self.reset_ang = 2*pi/180 # rad
+        self.reset_ang = 1.5*pi/180 # rad
 
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
@@ -79,17 +81,20 @@ class The_cool_bike():
         reset_q1_dot = q1_dot
         reset_q2_dot = q2_dot
 
+        self.last_Iq_cmd = 0
+
         self.state = np.array([reset_q1, reset_q1_dot, reset_q2_dot], dtype=np.float32)
-        '''if reset_q1 >= 0:
-            self.agent_state = np.array([reset_q1, reset_q1_dot, reset_q2_dot], dtype=np.float32)
-        else:
-            self.agent_state = np.array([-reset_q1, -reset_q1_dot, -reset_q2_dot], dtype=np.float32)'''
 
         self.agent_state = self.norm_agent_state(self.state)
 
-        self.last_Iq_cmd = 0
-
-        return np.array(self.agent_state, dtype=np.float32)
+        if args.torque_delay == 1:
+            self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [-0.5])
+            return self.state_delay
+        elif args.torque_delay == 2:
+            self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [-0.5, -0.5])
+            return self.state_delay
+        else:
+            return np.array(self.agent_state, dtype=np.float32)
 
     def step(self, action):
         global q1
@@ -117,21 +122,35 @@ class The_cool_bike():
         done = bool(
             env_q1 < -self.max_q1
             or env_q1 > self.max_q1
+        )
             #or env_q1_dot < -self.max_q1dot
             #or env_q1_dot > self.max_q1dot
-        )
 
         # for reward calculating
-        torque = self.Iq_cmd * 21/self.max_Iq
-        last_torque = self.last_Iq_cmd * 21/self.max_Iq
+        #torque = self.Iq_cmd * self.max_torque/self.max_Iq
+        #last_torque = self.last_Iq_cmd * self.max_torque/self.max_Iq
 
         costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.001 * env_q2_dot ** 2
         if done:
             costs += 100
 
-        self.last_Iq_cmd = self.Iq_cmd
+        if args.torque_delay == 1:
+            last_Iq_norm = (self.last_Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
+            self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [last_Iq_norm])
+            #print(np.array(self.agent_state, dtype=np.float32))
+            self.last_Iq_cmd = self.Iq_cmd
+            return self.state_delay, -costs, done, {}
 
-        return np.array(self.agent_state, dtype=np.float32), -costs, done, {}
+        elif args.torque_delay == 2:
+            last_Iq_norm = (self.last_Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
+            Iq_norm = (self.Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
+            self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [last_Iq_norm, Iq_norm])
+            self.last_Iq_cmd = self.Iq_cmd
+            return self.state_delay, -costs, done, {}
+
+        else:
+            self.last_Iq_cmd = self.Iq_cmd
+            return np.array(self.agent_state, dtype=np.float32), -costs, done, {}
 
     def norm_agent_state(self, state):
         state = ((state[0] - self.max_q1) / (2 * self.max_q1),
@@ -155,7 +174,12 @@ np.random.seed(args.seed)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
-state_size = 3
+if args.torque_delay == 1:
+    state_size = 4
+elif args.torque_delay == 2:
+    state_size = 5
+else:
+    state_size = 3
 action_size = 1
 
 log_dir = f"/home/ptlab/ros2_rlbike/runs_{args.type}/rwip{args.trial}"
@@ -203,12 +227,12 @@ def transient_response(env, state_action_log, type, seconds, fig_file_name):
     fig.suptitle(f'{type} Transient Response')
     t = np.linspace(0, seconds, state_action_log.shape[0])
     axs[0].plot(t[1:], state_action_log[1:,0])
-    axs[0].grid()
     axs[1].plot(t[1:], state_action_log[1:,1])
-    axs[1].grid()
     axs[2].plot(t[1:], state_action_log[1:,2])
+    axs[3].plot(t[1:], state_action_log[1:,3]*env.max_torque)
+    axs[0].grid()
+    axs[1].grid()
     axs[2].grid()
-    axs[3].plot(t[1:], state_action_log[1:,3]*21)
     axs[3].grid()
     axs[0].set_ylabel('q1(rad)')
     axs[1].set_ylabel('q1 dot(rad/s)')
@@ -361,11 +385,11 @@ class Node_RL(Node):
         self.frame += 1
 
         self.state, reward, done, _ = env.step(self.action)
+        self.episode_reward += reward
 
         state_for_render = env.state
         state_action = np.append(state_for_render, self.action)
         self.state_action_log = np.concatenate((self.state_action_log, np.asmatrix(state_action)), axis=0)
-        self.episode_reward += reward
 
         if done or self.rep >= self.rep_max:
             self.testing = False
