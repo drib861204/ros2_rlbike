@@ -17,7 +17,7 @@ from std_msgs.msg import Float64, Float64MultiArray
 
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-type", type=str, default="SAC", help="SAC, TD3, PPO")
-parser.add_argument("-trial", type=int, default=101, help="trial")
+parser.add_argument("-trial", type=int, default=104, help="trial")
 parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
 parser.add_argument("-lr_a", type=float, default=0.0003, help="learning rate for actor network")
 parser.add_argument("-lr_c", type=float, default=0.001, help="learning rate for critic network")
@@ -66,12 +66,10 @@ class The_cool_bike():
         self.max_Iq = 1100
         self.wheel_max_speed = 28 # rad/sec
 
-        self.reset_ang = 1*pi/180 # rad
+        self.reset_ang = 2*pi/180 # rad
 
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
-
-        self.q1dot_log = []
 
     def reset(self):
         global q1
@@ -101,8 +99,7 @@ class The_cool_bike():
         env_q1_dot = q1_dot
         env_q2_dot = q2_dot
 
-        self.q1dot_log.append(env_q1_dot)
-        print("q2 dot mean: ", np.mean(self.q1dot_log))
+        #print("q1: ", env_q1)
 
         self.Iq_cmd = action * self.max_Iq
         self.state = (env_q1, env_q1_dot, env_q2_dot)
@@ -120,15 +117,15 @@ class The_cool_bike():
         done = bool(
             env_q1 < -self.max_q1
             or env_q1 > self.max_q1
-            or env_q1_dot < -self.max_q1dot
-            or env_q1_dot > self.max_q1dot
+            #or env_q1_dot < -self.max_q1dot
+            #or env_q1_dot > self.max_q1dot
         )
 
         # for reward calculating
         torque = self.Iq_cmd * 21/self.max_Iq
         last_torque = self.last_Iq_cmd * 21/self.max_Iq
 
-        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.0001 * (last_torque - torque) ** 2
+        costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.001 * env_q2_dot ** 2
         if done:
             costs += 100
 
@@ -201,17 +198,21 @@ elif args.type == "PPO":
 ################################################################
 
 
-def transient_response(env, state_action_log, type, seconds):
+def transient_response(env, state_action_log, type, seconds, fig_file_name):
     fig, axs = plt.subplots(4)
     fig.suptitle(f'{type} Transient Response')
     t = np.linspace(0, seconds, state_action_log.shape[0])
     axs[0].plot(t[1:], state_action_log[1:,0])
+    axs[0].grid()
     axs[1].plot(t[1:], state_action_log[1:,1])
+    axs[1].grid()
     axs[2].plot(t[1:], state_action_log[1:,2])
+    axs[2].grid()
     axs[3].plot(t[1:], state_action_log[1:,3]*21)
-    axs[0].set_ylabel('q1(deg)')
-    axs[1].set_ylabel('q1 dot(deg/s)')
-    axs[2].set_ylabel('q2 dot(deg/s)')
+    axs[3].grid()
+    axs[0].set_ylabel('q1(rad)')
+    axs[1].set_ylabel('q1 dot(rad/s)')
+    axs[2].set_ylabel('q2 dot(rad/s)')
     axs[3].set_ylabel('torque(Nm)')
     axs[3].set_xlabel('time(s)')
     '''axs[0].set_ylim([-0.065,0.065])
@@ -222,10 +223,8 @@ def transient_response(env, state_action_log, type, seconds):
     axs[1].get_xaxis().set_visible(False)
     axs[2].get_xaxis().set_visible(False)
 
-    current_num_files = next(os.walk(log_dir))[2]
-    run_num = len(current_num_files)
-
-    plt.savefig(log_dir + f"/response{run_num}")
+    plt.savefig(fig_file_name)
+    plt.close()
     #plt.show()
 
     '''print("e_ss=",state_action_log[-1,0])
@@ -304,6 +303,8 @@ class Node_RL(Node):
         self.action = 0.0
         self.pub_iq(0.0)
 
+        self.fig_file_name = "."
+
         timer_period = 0.05 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
@@ -331,6 +332,13 @@ class Node_RL(Node):
                 print(f"Waiting for reset: |q1| < {env.reset_ang} ...")
             else:
                 print("Reset ok!")
+
+                current_num_files = next(os.walk(log_dir))[2]
+                run_num = len(current_num_files)
+                self.fig_file_name = log_dir + f"/response{run_num}"
+
+                self.state_action_log = np.zeros((1, 4))
+
                 self.state = env.reset()
                 self.pub_iq(0.0)
                 self.testing = True
@@ -339,11 +347,11 @@ class Node_RL(Node):
             self.test()
 
     def pub_iq(self, action):
-        self.action = action
+        self.action = action * 1.0
 
-        #print(action)
-        self.Iq_cmd_pub_msg.data = action * env.max_Iq
-        self.Iq_cmd_pub_msg.data = 0.0
+        #print(self.action)
+        self.Iq_cmd_pub_msg.data = self.action * env.max_Iq
+        #self.Iq_cmd_pub_msg.data = 0.0
         self.iq_cmd_pub.publish(self.Iq_cmd_pub_msg)
         self.get_logger().info('Publishing Iq cmd: "%f"' % self.Iq_cmd_pub_msg.data)
 
@@ -368,22 +376,27 @@ class Node_RL(Node):
             self.episode_reward = 0
             self.pub_iq(0.0)
 
-            print("Wait for 5 seconds to reset")
+            t1 = time.time()
+            hours, seconds = divmod((t1-self.t0), 3600)
+            transient_response(env, self.state_action_log, args.type, seconds, self.fig_file_name)
+            #print("cumulative reward:", self.episode_reward)
+
+            print("Wait for 1 second to reset")
             time.sleep(1)
-            print("4...")
+            '''print("4...")
             time.sleep(1)
             print("3...")
             time.sleep(1)
             print("2...")
             time.sleep(1)
             print("1...")
-            time.sleep(1)
+            time.sleep(1)'''
 
         else:
             if self.rep % self.plot_response_freq == 0:
                 t1 = time.time()
                 hours, seconds = divmod((t1-self.t0), 3600)
-                transient_response(env, self.state_action_log, args.type, seconds)
+                transient_response(env, self.state_action_log, args.type, seconds, self.fig_file_name)
                 #print("cumulative reward:", self.episode_reward)
 
             if args.type == "SAC":
