@@ -30,7 +30,7 @@ class Motor(Node):
         )
         self.subscription
 
-        timer_period = 0.02 # seconds
+        timer_period = 0.01 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def listener_callback(self, iq_cmd_msg):

@@ -27,12 +27,12 @@ class IMU(Node):
 
         self.q1 = 0
         self.q1_dot = 0
-        self.bias_q1 = 0.5
+        self.bias_q1 = 0.515
         self.bias_q1dot = 0.04
 
         self.openimu_spi = SpiOpenIMU(target_module="300ZI", fw='26.0.7', cs_pin = 19, interrupt_pin = 26, drdy_status=False)
         
-        timer_period = 0.02
+        timer_period = 0.01
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
