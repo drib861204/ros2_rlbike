@@ -6,6 +6,7 @@ import torch
 import numpy as np
 import argparse
 from collections import deque
+import dill
 from .files.Agent import Agent
 from .utils import ReplayBuffer
 from .TD3 import TD3
@@ -20,10 +21,11 @@ from std_msgs.msg import Float64, Float64MultiArray
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-type", type=str, default="SAC", help="SAC, TD3, PPO")
 parser.add_argument("-trial", type=int, default=0, help="trial")
+parser.add_argument("-cont_trial", type=int, default=0, help="continue training trial")
 parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
 parser.add_argument("-lr_a", type=float, default=0.0003, help="learning rate for actor network")
 parser.add_argument("-lr_c", type=float, default=0.001, help="learning rate for critic network")
-parser.add_argument("-torque_delay", type=int, default=0, help="consider torque delay. 1: state + last_torque, 2: + last and current torque, 3: original state")
+parser.add_argument("-torque_delay", type=int, default=3, help="consider torque delay. 1: state + last_torque, 2: + last and current torque, 3: original state")
 
 #SAC arguments
 parser.add_argument("-per", type=int, default=0, choices=[0, 1],
@@ -64,13 +66,13 @@ args, unknown = parser.parse_known_args()
 
 class The_cool_bike():
     def __init__(self):
-        self.max_q1 = 3.5*pi/180 # rad
+        self.max_q1 = 2.5*pi/180 # rad
         self.max_q1dot = 0.3 # rad/sec
-        self.max_Iq = 1100
-        self.max_torque = 21
+        self.max_Iq = 550 #1100
+        self.max_torque = 10.5 #21
         self.wheel_max_speed = 28 # rad/sec
 
-        self.reset_ang = 1.5*pi/180 # rad
+        self.reset_ang = 1*pi/180 # rad
 
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
@@ -79,9 +81,9 @@ class The_cool_bike():
         global q1
         global q1_dot
         global q2_dot
-        reset_q1 = q1
+        reset_q1 = np.clip(q1, -self.max_q1, self.max_q1)
         reset_q1_dot = q1_dot
-        reset_q2_dot = q2_dot
+        reset_q2_dot = np.clip(q2_dot, -self.wheel_max_speed, self.wheel_max_speed)
 
         self.last_Iq_cmd = 0
 
@@ -95,6 +97,10 @@ class The_cool_bike():
         elif args.torque_delay == 2:
             self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [-0.5, -0.5])
             return self.state_delay
+        elif args.torque_delay == 3:
+            self.last2_Iq_cmd = 0
+            self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [-0.5, -0.5, -0.5])
+            return self.state_delay
         else:
             return np.array(self.agent_state, dtype=np.float32)
 
@@ -102,9 +108,9 @@ class The_cool_bike():
         global q1
         global q1_dot
         global q2_dot
-        env_q1 = q1
+        env_q1 = np.clip(q1, -self.max_q1, self.max_q1)
         env_q1_dot = q1_dot
-        env_q2_dot = q2_dot
+        env_q2_dot = np.clip(q2_dot, -self.wheel_max_speed, self.wheel_max_speed)
 
         self.Iq_cmd = action * self.max_Iq
         self.state = (env_q1, env_q1_dot, env_q2_dot)
@@ -121,15 +127,11 @@ class The_cool_bike():
         #self.state = (env_q1, env_q1_dot, env_q2_dot)
 
         done = bool(
-            env_q1 < -self.max_q1
-            or env_q1 > self.max_q1
+            env_q1 <= -self.max_q1
+            or env_q1 >= self.max_q1
         )
             #or env_q1_dot < -self.max_q1dot
             #or env_q1_dot > self.max_q1dot
-
-        # for reward calculating
-        #torque = self.Iq_cmd * self.max_torque/self.max_Iq
-        #last_torque = self.last_Iq_cmd * self.max_torque/self.max_Iq
 
         costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.001 * env_q2_dot ** 2
         if done:
@@ -147,6 +149,15 @@ class The_cool_bike():
             Iq_norm = (self.Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
             self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [last_Iq_norm, Iq_norm])
             self.last_Iq_cmd = self.Iq_cmd
+            return self.state_delay, -costs, done, {}
+
+        elif args.torque_delay == 3:
+            last2_Iq_norm = (self.last2_Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
+            last_Iq_norm = (self.last_Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
+            Iq_norm = (self.Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
+            self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [last2_Iq_norm, last_Iq_norm, Iq_norm])
+            self.last_Iq_cmd = self.Iq_cmd
+            self.last2_Iq_cmd = self.last_Iq_cmd
             return self.state_delay, -costs, done, {}
 
         else:
@@ -179,13 +190,28 @@ if args.torque_delay == 1:
     state_size = 4
 elif args.torque_delay == 2:
     state_size = 5
+elif args.torque_delay == 3:
+    state_size = 6
 else:
     state_size = 3
 action_size = 1
 
 if args.type == "SAC":
     agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
-    #agent.actor_local.load_state_dict(torch.load(f"/home/ptlab/ros2_rlbike/runs_{args.type}/rwip27/rwip27_0.pth", map_location=device))
+
+    if args.cont_trial:
+        model_pth = f"/home/ptlab/ros2_rlbike/runs_SAC/rwip{args.cont_trial}/rwip{args.cont_trial}_{args.seed}"
+        agent.actor_local.load_state_dict(torch.load(model_pth+"_actor", map_location=torch.device('cpu')))
+        agent.actor_optimizer.load_state_dict(torch.load(model_pth+"_actor_optimizer", map_location=torch.device('cpu')))
+        agent.critic1.load_state_dict(torch.load(model_pth+"_critic1", map_location=torch.device('cpu')))
+        agent.critic1_target.load_state_dict(agent.critic1.state_dict())
+        agent.critic1_optimizer.load_state_dict(torch.load(model_pth+"_critic1_optimizer", map_location=torch.device('cpu')))
+        agent.critic2.load_state_dict(torch.load(model_pth+"_critic2", map_location=torch.device('cpu')))
+        agent.critic2_target.load_state_dict(agent.critic2.state_dict())
+        agent.critic2_optimizer.load_state_dict(torch.load(model_pth+"_critic2_optimizer", map_location=torch.device('cpu')))
+        agent.log_alpha = torch.load(model_pth+"_log_alpha", map_location=torch.device('cpu'))
+        agent.alpha_optimizer.load_state_dict(torch.load(model_pth+"_alpha_optimizer", map_location=torch.device('cpu')))
+        agent.memory = dill.load(open(model_pth+"_memory", "rb"))
 
 elif args.type == "TD3":
     max_action = float(env.max_Iq)
@@ -225,14 +251,15 @@ if not os.path.exists(log_dir):
 current_files = os.listdir(log_dir)
 files_num = len(current_files)
 
-log_dir = log_dir + f"/rwip{files_num}"
+log_dir = log_dir + f"/rwip{args.trial}"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 current_num_files = next(os.walk(log_dir))[2]
 run_num = len(current_num_files)
 
-checkpoint_path = log_dir + f"/rwip{files_num}_{run_num}.pth"
+#checkpoint_path = log_dir + f"/rwip{files_num}_{run_num}.pth"
+checkpoint_path = log_dir + f"/rwip{args.trial}_{run_num}"
 
 fig_dir = log_dir + "/fig_training"
 if not os.path.exists(fig_dir):
@@ -262,7 +289,21 @@ def timer(start, end):
 
 def save_pth():
     if args.type == "SAC":
-        torch.save(agent.actor_local.state_dict(), checkpoint_path)
+        #torch.save(agent.actor_local.state_dict(), checkpoint_path)
+        torch.save(agent.actor_local.state_dict(), checkpoint_path+"_actor")
+        torch.save(agent.actor_optimizer.state_dict(), checkpoint_path+"_actor_optimizer")
+
+        torch.save(agent.critic1.state_dict(), checkpoint_path+"_critic1")
+        torch.save(agent.critic1_optimizer.state_dict(), checkpoint_path+"_critic1_optimizer")
+
+        torch.save(agent.critic2.state_dict(), checkpoint_path+"_critic2")
+        torch.save(agent.critic2_optimizer.state_dict(), checkpoint_path+"_critic2_optimizer")
+
+        torch.save(agent.log_alpha, checkpoint_path+"_log_alpha")
+        torch.save(agent.alpha_optimizer.state_dict(), checkpoint_path+"_alpha_optimizer")
+
+        dill.dump(agent.memory, file = open(checkpoint_path+"_memory", "wb"))
+
     elif args.type == "TD3":
         torch.save(agent.actor.state_dict(), checkpoint_path)
     elif args.type == "PPO":
@@ -319,7 +360,7 @@ class Node_RL(Node):
         self.frame = 0
         self.i_episode = 1
         self.rep = 0
-        self.rep_max = 500
+        self.rep_max = 25 #500
         self.eval_every_ep = 10
         self.episode_reward = 0
         self.state_action_log = np.zeros((1, 4))
@@ -343,7 +384,7 @@ class Node_RL(Node):
         q1 = msg.data[0]
         q1_dot = msg.data[1]
 
-        if abs(q1) < env.reset_ang and abs(q1_dot) < 0.003:
+        if abs(msg.data[0]) < env.reset_ang and abs(msg.data[1]) < 0.05:
             self.in_reset_range = True
         else:
             self.in_reset_range = False
@@ -354,6 +395,18 @@ class Node_RL(Node):
         global q2_dot
         q2_dot = msg.data
         #self.get_logger().info('motor speed feedback: "%s"' % msg.data)
+
+    def alg_action(self):
+        action_cmd = 0
+        if args.type == "SAC":
+            #agent.step(self.state, self.action, reward, next_state, [done], self.frame, 0)
+            #self.state = next_state
+
+            action_cmd = agent.act(self.state)
+
+            action_cmd = action_cmd[0]
+
+        self.pub_iq(action_cmd)
 
     def timer_callback(self):
         #print("timestep", time.time())
@@ -371,7 +424,10 @@ class Node_RL(Node):
                 self.state_action_log = np.zeros((1, 4))
 
                 self.state = env.reset()
-                self.pub_iq(0.0)
+
+                self.alg_action()
+
+                #self.pub_iq(0.0)
                 self.training = True
                 self.t0 = time.time()
         else:
@@ -471,8 +527,8 @@ class Node_RL(Node):
 
                 action_cmd = agent.select_action(self.state)
 
-            #self.pub_iq(action_cmd).
-            self.pub_iq(-0.5)
+            self.pub_iq(action_cmd)
+            #self.pub_iq(-0.5)
 
 
 def main(args=args):

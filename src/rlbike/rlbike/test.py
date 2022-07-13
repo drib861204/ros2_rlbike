@@ -17,11 +17,12 @@ from std_msgs.msg import Float64, Float64MultiArray
 
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-type", type=str, default="SAC", help="SAC, TD3, PPO")
-parser.add_argument("-trial", type=int, default=112, help="trial")
+parser.add_argument("-trial", type=int, default=0, help="trial")
+parser.add_argument("-cont_trial", type=int, default=0, help="continue training trial")
 parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
 parser.add_argument("-lr_a", type=float, default=0.0003, help="learning rate for actor network")
 parser.add_argument("-lr_c", type=float, default=0.001, help="learning rate for critic network")
-parser.add_argument("-torque_delay", type=int, default=0, help="consider torque delay. 1: state + last_torque, 2: + last and current torque, 3: original state")
+parser.add_argument("-torque_delay", type=int, default=3, help="consider torque delay. 1: state + last_torque, 2: + last and current torque, 3: original state")
 
 # SAC parameters
 parser.add_argument("-per", type=int, default=0, choices=[0, 1],
@@ -62,13 +63,13 @@ args, unknown = parser.parse_known_args()
 
 class The_cool_bike():
     def __init__(self):
-        self.max_q1 = 3.5*pi/180 # rad
+        self.max_q1 = 2.5*pi/180 # rad
         self.max_q1dot = 0.3 # rad/sec
-        self.max_Iq = 1100
-        self.max_torque = 21
+        self.max_Iq = 550 #1100
+        self.max_torque = 10.5 #21
         self.wheel_max_speed = 28 # rad/sec
 
-        self.reset_ang = 1.5*pi/180 # rad
+        self.reset_ang = 1*pi/180 # rad
 
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
@@ -77,9 +78,9 @@ class The_cool_bike():
         global q1
         global q1_dot
         global q2_dot
-        reset_q1 = q1
+        reset_q1 = np.clip(q1, -self.max_q1, self.max_q1)
         reset_q1_dot = q1_dot
-        reset_q2_dot = q2_dot
+        reset_q2_dot = np.clip(q2_dot, -self.wheel_max_speed, self.wheel_max_speed)
 
         self.last_Iq_cmd = 0
 
@@ -93,6 +94,10 @@ class The_cool_bike():
         elif args.torque_delay == 2:
             self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [-0.5, -0.5])
             return self.state_delay
+        elif args.torque_delay == 3:
+            self.last2_Iq_cmd = 0
+            self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [-0.5, -0.5, -0.5])
+            return self.state_delay
         else:
             return np.array(self.agent_state, dtype=np.float32)
 
@@ -100,9 +105,9 @@ class The_cool_bike():
         global q1
         global q1_dot
         global q2_dot
-        env_q1 = q1
+        env_q1 = np.clip(q1, -self.max_q1, self.max_q1)
         env_q1_dot = q1_dot
-        env_q2_dot = q2_dot
+        env_q2_dot = np.clip(q2_dot, -self.wheel_max_speed, self.wheel_max_speed)
 
         #print("q1: ", env_q1)
 
@@ -120,15 +125,11 @@ class The_cool_bike():
         #print("inside env: ", q1, q1_dot, q2_dot)
 
         done = bool(
-            env_q1 < -self.max_q1
-            or env_q1 > self.max_q1
+            env_q1 <= -self.max_q1
+            or env_q1 >= self.max_q1
         )
             #or env_q1_dot < -self.max_q1dot
             #or env_q1_dot > self.max_q1dot
-
-        # for reward calculating
-        #torque = self.Iq_cmd * self.max_torque/self.max_Iq
-        #last_torque = self.last_Iq_cmd * self.max_torque/self.max_Iq
 
         costs = 100 * env_q1 ** 2 + 1 * env_q1_dot ** 2 + 0.001 * env_q2_dot ** 2
         if done:
@@ -146,6 +147,15 @@ class The_cool_bike():
             Iq_norm = (self.Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
             self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [last_Iq_norm, Iq_norm])
             self.last_Iq_cmd = self.Iq_cmd
+            return self.state_delay, -costs, done, {}
+
+        elif args.torque_delay == 3:
+            last2_Iq_norm = (self.last2_Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
+            last_Iq_norm = (self.last_Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
+            Iq_norm = (self.Iq_cmd - self.max_Iq) / (2 * self.max_Iq)
+            self.state_delay = np.append(np.array(self.agent_state, dtype=np.float32), [last2_Iq_norm, last_Iq_norm, Iq_norm])
+            self.last_Iq_cmd = self.Iq_cmd
+            self.last2_Iq_cmd = self.last_Iq_cmd
             return self.state_delay, -costs, done, {}
 
         else:
@@ -178,13 +188,15 @@ if args.torque_delay == 1:
     state_size = 4
 elif args.torque_delay == 2:
     state_size = 5
+elif args.torque_delay == 3:
+    state_size = 6
 else:
     state_size = 3
 action_size = 1
 
 log_dir = f"/home/ptlab/ros2_rlbike/runs_{args.type}/rwip{args.trial}"
-checkpoint_path = log_dir + f"/rwip{args.trial}_0.pth"
-log_dir = log_dir + "/fig"
+checkpoint_path = log_dir + f"/rwip{args.trial}_0_actor"
+log_dir = log_dir + "/eval_fig"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
@@ -339,7 +351,7 @@ class Node_RL(Node):
         q1_dot = msg.data[1]
         #self.get_logger().info('IMU data: (%f,%f)' % (msg.data[0], msg.data[1]))
 
-        if abs(q1) < env.reset_ang:
+        if abs(msg.data[0]) < env.reset_ang:
             self.in_reset_range = True
         else:
             self.in_reset_range = False
@@ -348,6 +360,18 @@ class Node_RL(Node):
         global q2_dot
         q2_dot = msg.data
         #self.get_logger().info('motor speed feedback: "%s"' % msg.data)
+
+    def alg_action(self):
+        action_cmd = 0
+        if args.type == "SAC":
+            #agent.step(self.state, self.action, reward, next_state, [done], self.frame, 0)
+            #self.state = next_state
+
+            action_cmd = agent.act(self.state)
+
+            action_cmd = action_cmd[0]
+
+        self.pub_iq(action_cmd)
 
     def timer_callback(self):
         #print("timestep", time.time())
@@ -364,6 +388,9 @@ class Node_RL(Node):
                 self.state_action_log = np.zeros((1, 4))
 
                 self.state = env.reset()
+
+                self.alg_action()
+
                 self.pub_iq(0.0)
                 self.testing = True
                 self.t0 = time.time()
