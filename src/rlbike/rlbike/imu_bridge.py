@@ -27,7 +27,7 @@ class IMU(Node):
 
         self.q1 = 0
         self.q1_dot = 0
-        self.bias_q1 = 0.515
+        self.bias_q1 = 0.517
         self.bias_q1dot = 0.04
 
         self.openimu_spi = SpiOpenIMU(target_module="300ZI", fw='26.0.7', cs_pin = 19, interrupt_pin = 26, drdy_status=False)
