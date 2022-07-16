@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import os
 import time
 import torch
@@ -22,7 +24,7 @@ parser.add_argument("-cont_trial", type=int, default=0, help="continue training 
 parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
 parser.add_argument("-lr_a", type=float, default=0.0003, help="learning rate for actor network")
 parser.add_argument("-lr_c", type=float, default=0.001, help="learning rate for critic network")
-parser.add_argument("-torque_delay", type=int, default=3, help="consider torque delay. 1: state + last_torque, 2: + last and current torque, 3: original state")
+parser.add_argument("-torque_delay", type=int, default=2, help="consider torque delay. 1: state + last_torque, 2: + last and current torque, 3: original state")
 
 # SAC parameters
 parser.add_argument("-per", type=int, default=0, choices=[0, 1],
@@ -63,13 +65,13 @@ args, unknown = parser.parse_known_args()
 
 class The_cool_bike():
     def __init__(self):
-        self.max_q1 = 2.5*pi/180 # rad
+        self.max_q1 = 3.5*pi/180 # rad
         self.max_q1dot = 0.3 # rad/sec
-        self.max_Iq = 550 #1100
-        self.max_torque = 10.5 #21
+        self.max_Iq = 1100*11/21 #1100
+        self.max_torque = 11 #21
         self.wheel_max_speed = 28 # rad/sec
 
-        self.reset_ang = 1*pi/180 # rad
+        self.reset_ang = 1.5*pi/180 # rad
 
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
@@ -194,7 +196,7 @@ else:
     state_size = 3
 action_size = 1
 
-log_dir = f"/home/ptlab/ros2_rlbike/runs_{args.type}/rwip{args.trial}"
+log_dir = f"{os.path.abspath(os.getcwd())}/runs_{args.type}/rwip{args.trial}"
 checkpoint_path = log_dir + f"/rwip{args.trial}_0_actor"
 log_dir = log_dir + "/eval_fig"
 if not os.path.exists(log_dir):

@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import os
 import time
 from datetime import datetime
@@ -25,7 +27,7 @@ parser.add_argument("-cont_trial", type=int, default=0, help="continue training 
 parser.add_argument("-seed", type=int, default=0, help="Seed for the env and torch network weights, default is 0")
 parser.add_argument("-lr_a", type=float, default=0.0003, help="learning rate for actor network")
 parser.add_argument("-lr_c", type=float, default=0.001, help="learning rate for critic network")
-parser.add_argument("-torque_delay", type=int, default=3, help="consider torque delay. 1: state + last_torque, 2: + last and current torque, 3: original state")
+parser.add_argument("-torque_delay", type=int, default=2, help="consider torque delay. 1: state + last_torque, 2: + last and current torque, 3: original state")
 
 #SAC arguments
 parser.add_argument("-per", type=int, default=0, choices=[0, 1],
@@ -66,13 +68,13 @@ args, unknown = parser.parse_known_args()
 
 class The_cool_bike():
     def __init__(self):
-        self.max_q1 = 2.5*pi/180 # rad
+        self.max_q1 = 3.5*pi/180 # rad
         self.max_q1dot = 0.3 # rad/sec
-        self.max_Iq = 550 #1100
-        self.max_torque = 10.5 #21
+        self.max_Iq = 1100*11/21 #1100
+        self.max_torque = 11 #21
         self.wheel_max_speed = 28 # rad/sec
 
-        self.reset_ang = 1*pi/180 # rad
+        self.reset_ang = 2*pi/180 # rad
 
         self.Iq_cmd = 0
         self.last_Iq_cmd = 0
@@ -200,7 +202,7 @@ if args.type == "SAC":
     agent = Agent(state_size=state_size, action_size=action_size, args=args, device=device)
 
     if args.cont_trial:
-        model_pth = f"/home/ptlab/ros2_rlbike/runs_SAC/rwip{args.cont_trial}/rwip{args.cont_trial}_{args.seed}"
+        model_pth = f"{os.path.abspath(os.getcwd())}/runs_SAC/rwip{args.cont_trial}/rwip{args.cont_trial}_{args.seed}"
         agent.actor_local.load_state_dict(torch.load(model_pth+"_actor", map_location=torch.device('cpu')))
         agent.actor_optimizer.load_state_dict(torch.load(model_pth+"_actor_optimizer", map_location=torch.device('cpu')))
         agent.critic1.load_state_dict(torch.load(model_pth+"_critic1", map_location=torch.device('cpu')))
@@ -244,7 +246,7 @@ elif args.type == "PPO":
     agent = PPO(state_size, action_size, lr_actor, lr_critic, gamma, K_epochs, eps_clip, True, action_std)
 
 ###################### logging ######################
-log_dir = f"/home/ptlab/ros2_rlbike/runs_{args.type}"
+log_dir = f"{os.path.abspath(os.getcwd())}/runs_{args.type}"
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
@@ -360,7 +362,7 @@ class Node_RL(Node):
         self.frame = 0
         self.i_episode = 1
         self.rep = 0
-        self.rep_max = 25 #500
+        self.rep_max = 20 #500
         self.eval_every_ep = 10
         self.episode_reward = 0
         self.state_action_log = np.zeros((1, 4))
@@ -469,7 +471,9 @@ class Node_RL(Node):
             hours, seconds = divmod((t1-self.t0), 3600)
             transient_response(env, self.state_action_log, args.type, seconds, self.fig_file_name)
 
-            save_pth()
+            if self.frame % 1000 < 20:
+                print("save model...")
+                save_pth()
 
             print("Wait for 1 second to reset")
             time.sleep(1)
