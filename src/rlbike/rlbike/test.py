@@ -244,10 +244,10 @@ def transient_response(env, state_action_log, type, seconds, fig_file_name):
     axs[1].plot(t[1:], state_action_log[1:,1])
     axs[2].plot(t[1:], state_action_log[1:,2])
     axs[3].plot(t[1:], state_action_log[1:,3]*env.max_torque)
-    axs[0].grid()
-    axs[1].grid()
-    axs[2].grid()
-    axs[3].grid()
+    axs[0].grid(axis='y')
+    axs[1].grid(axis='y')
+    axs[2].grid(axis='y')
+    axs[3].grid(axis='y')
     axs[0].set_ylabel('q1(rad)')
     axs[1].set_ylabel('q1 dot(rad/s)')
     axs[2].set_ylabel('q2 dot(rad/s)')
@@ -436,14 +436,6 @@ class Node_RL(Node):
 
             print("Wait for 1 second to reset")
             time.sleep(1)
-            '''print("4...")
-            time.sleep(1)
-            print("3...")
-            time.sleep(1)
-            print("2...")
-            time.sleep(1)
-            print("1...")
-            time.sleep(1)'''
 
         else:
             if self.rep % self.plot_response_freq == 0:

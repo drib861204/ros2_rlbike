@@ -320,10 +320,10 @@ def transient_response(env, state_action_log, type, seconds, fig_file_name):
     axs[1].plot(t[1:], state_action_log[1:,1])
     axs[2].plot(t[1:], state_action_log[1:,2])
     axs[3].plot(t[1:], state_action_log[1:,3]*env.max_torque)
-    axs[0].grid()
-    axs[1].grid()
-    axs[2].grid()
-    axs[3].grid()
+    axs[0].grid(axis='y')
+    axs[1].grid(axis='y')
+    axs[2].grid(axis='y')
+    axs[3].grid(axis='y')
     axs[0].set_ylabel('q1(rad)')
     axs[1].set_ylabel('q1 dot(rad/s)')
     axs[2].set_ylabel('q2 dot(rad/s)')
@@ -363,7 +363,6 @@ class Node_RL(Node):
         self.i_episode = 1
         self.rep = 0
         self.rep_max = 20 #500
-        self.eval_every_ep = 10
         self.episode_reward = 0
         self.state_action_log = np.zeros((1, 4))
 
@@ -451,6 +450,26 @@ class Node_RL(Node):
         next_state, reward, done, _ = env.step(self.action)
         self.episode_reward += reward
 
+        if args.type == "SAC":
+            agent.step(self.state, self.action, reward, next_state, [done], self.frame, 0)
+            self.state = next_state
+
+        elif args.type == "TD3":
+            done_bool = float(done) if self.rep < self.rep_max else 0
+            replay_buffer.add(self.state, self.action, next_state, reward, done_bool)
+            self.state = next_state
+            if self.frame >= args.start_timesteps:
+                agent.train(replay_buffer, args.batch_size)
+
+        elif args.type == "PPO":
+            self.state = next_state
+            agent.buffer.rewards.append(reward)
+            agent.buffer.is_terminals.append(done)
+            if self.frame % update_timestep == 0:
+                agent.update()
+            if self.frame % action_std_decay_freq == 0:
+                agent.decay_action_std(action_std_decay_rate, min_action_std)
+
         state_for_render = env.state
         state_action = np.append(state_for_render, self.action)
         self.state_action_log = np.concatenate((self.state_action_log, np.asmatrix(state_action)), axis=0)
@@ -477,39 +496,13 @@ class Node_RL(Node):
 
             print("Wait for 1 second to reset")
             time.sleep(1)
-            '''print("4...")
-            time.sleep(1)
-            print("3...")
-            time.sleep(1)
-            print("2...")
-            time.sleep(1)
-            print("1...")
-            time.sleep(1)'''
-
-            '''if self.i_episode % self.eval_every_ep == 0:
-                eval_reward = test(env=env, agent=agent, args=args)
-                print("\neval_reward", eval_reward)
-                if eval_reward > -10:
-                    #break
-                    pass
-                pass'''
 
         else:
             if args.type == "SAC":
-                agent.step(self.state, self.action, reward, next_state, [done], self.frame, 0)
-                self.state = next_state
-
                 action_cmd = agent.act(self.state)
-
                 action_cmd = action_cmd[0]
 
             elif args.type == "TD3":
-                done_bool = float(done) if self.rep < self.rep_max else 0
-                replay_buffer.add(self.state, self.action, next_state, reward, done_bool)
-                self.state = next_state
-                if self.frame >= args.start_timesteps:
-                    agent.train(replay_buffer, args.batch_size)
-
                 if self.frame < args.start_timesteps:
                     action_cmd = np.random.uniform(low=-env.max_Iq, high=env.max_Iq)
                 else:
@@ -521,14 +514,6 @@ class Node_RL(Node):
                 action_cmd = action_cmd/env.max_Iq
 
             elif args.type == "PPO":
-                self.state = next_state
-                agent.buffer.rewards.append(reward)
-                agent.buffer.is_terminals.append(done)
-                if self.frame % update_timestep == 0:
-                    agent.update()
-                if self.frame % action_std_decay_freq == 0:
-                    agent.decay_action_std(action_std_decay_rate, min_action_std)
-
                 action_cmd = agent.select_action(self.state)
 
             self.pub_iq(action_cmd)
