@@ -344,7 +344,7 @@ class Node_RL(Node):
 
         self.fig_file_name = "."
 
-        timer_period = 0.01 # seconds
+        timer_period = 0.05 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def imu_callback(self, msg):

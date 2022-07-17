@@ -1,0 +1,55 @@
+running egg_info
+writing ../../build/rlbike/rlbike.egg-info/PKG-INFO
+writing dependency_links to ../../build/rlbike/rlbike.egg-info/dependency_links.txt
+writing entry points to ../../build/rlbike/rlbike.egg-info/entry_points.txt
+writing requirements to ../../build/rlbike/rlbike.egg-info/requires.txt
+writing top-level names to ../../build/rlbike/rlbike.egg-info/top_level.txt
+reading manifest file '../../build/rlbike/rlbike.egg-info/SOURCES.txt'
+writing manifest file '../../build/rlbike/rlbike.egg-info/SOURCES.txt'
+running build
+running build_py
+copying rlbike/motor_bridge.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike
+copying rlbike/imu_bridge.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike
+copying rlbike/real_env.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike
+copying rlbike/PID_control.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike
+copying rlbike/run.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike
+copying rlbike/rmdx8.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike
+copying rlbike/OpenIMU_SPI.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike
+creating /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/files
+copying rlbike/files/ReplayBuffers.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/files
+copying rlbike/files/Agent.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/files
+copying rlbike/files/MultiPro.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/files
+copying rlbike/files/networks.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/files
+running install
+running install_lib
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/motor_bridge.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/imu_bridge.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/real_env.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/PID_control.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/run.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/rmdx8.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/OpenIMU_SPI.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike
+creating /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/files
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/files/ReplayBuffers.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/files
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/files/Agent.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/files
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/files/MultiPro.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/files
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/files/networks.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/files
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/motor_bridge.py to motor_bridge.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/imu_bridge.py to imu_bridge.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/real_env.py to real_env.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/PID_control.py to PID_control.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/run.py to run.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/rmdx8.py to rmdx8.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/OpenIMU_SPI.py to OpenIMU_SPI.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/files/ReplayBuffers.py to ReplayBuffers.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/files/Agent.py to Agent.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/files/MultiPro.py to MultiPro.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/files/networks.py to networks.cpython-36.pyc
+running install_data
+running install_egg_info
+removing '/home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike-0.0.0-py3.6.egg-info' (and everything under it)
+Copying ../../build/rlbike/rlbike.egg-info to /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike-0.0.0-py3.6.egg-info
+running install_scripts
+Installing motor_bridge = rlbike.motor_bridge:mainimu_bridge script to /home/ptlab/ros2_rlbike/install/rlbike/lib/rlbike
+Installing run script to /home/ptlab/ros2_rlbike/install/rlbike/lib/rlbike
+writing list of installed files to '/home/ptlab/ros2_rlbike/build/rlbike/install.log'

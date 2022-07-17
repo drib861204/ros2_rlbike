@@ -1,0 +1,35 @@
+[0.427s] Invoking command in '/home/ptlab/ros2_rlbike/src/rlbike': PYTHONPATH=/home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/rlbike build --build-base /home/ptlab/ros2_rlbike/build/rlbike/build install --prefix /home/ptlab/ros2_rlbike/install/rlbike --record /home/ptlab/ros2_rlbike/build/rlbike/install.log --single-version-externally-managed
+[0.581s] /home/ptlab/.local/lib/python3.6/site-packages/setuptools/dist.py:726: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead
+[0.582s]   % (opt, underscore_opt)
+[0.582s] /home/ptlab/.local/lib/python3.6/site-packages/setuptools/dist.py:726: UserWarning: Usage of dash-separated 'install-scripts' will not be supported in future versions. Please use the underscore name 'install_scripts' instead
+[0.582s]   % (opt, underscore_opt)
+[0.602s] running egg_info
+[0.603s] writing ../../build/rlbike/rlbike.egg-info/PKG-INFO
+[0.603s] writing dependency_links to ../../build/rlbike/rlbike.egg-info/dependency_links.txt
+[0.603s] writing entry points to ../../build/rlbike/rlbike.egg-info/entry_points.txt
+[0.603s] writing requirements to ../../build/rlbike/rlbike.egg-info/requires.txt
+[0.603s] writing top-level names to ../../build/rlbike/rlbike.egg-info/top_level.txt
+[0.604s] package init file 'rlbike/files/__init__.py' not found (or not a regular file)
+[0.604s] reading manifest file '../../build/rlbike/rlbike.egg-info/SOURCES.txt'
+[0.605s] writing manifest file '../../build/rlbike/rlbike.egg-info/SOURCES.txt'
+[0.605s] running build
+[0.605s] running build_py
+[0.606s] copying rlbike/train.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike
+[0.606s] running install
+[0.606s] /home/ptlab/.local/lib/python3.6/site-packages/setuptools/command/install.py:37: SetuptoolsDeprecationWarning: setup.py install is deprecated. Use build and pip and other standards-based tools.
+[0.607s]   setuptools.SetuptoolsDeprecationWarning,
+[0.607s] running install_lib
+[0.607s] copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/train.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike
+[0.608s] byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/train.py to train.cpython-36.pyc
+[0.609s] byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/PID_control.py to PID_control.cpython-36.pyc
+[0.609s] Sorry: IndentationError: unindent does not match any outer indentation level (PID_control.py, line 44)
+[0.610s] running install_data
+[0.610s] running install_egg_info
+[0.611s] removing '/home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike-0.0.0-py3.6.egg-info' (and everything under it)
+[0.611s] Copying ../../build/rlbike/rlbike.egg-info to /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike-0.0.0-py3.6.egg-info
+[0.612s] running install_scripts
+[0.622s] Installing imu_bridge script to /home/ptlab/ros2_rlbike/install/rlbike/lib/rlbike
+[0.623s] Installing motor_bridge script to /home/ptlab/ros2_rlbike/install/rlbike/lib/rlbike
+[0.623s] Installing train script to /home/ptlab/ros2_rlbike/install/rlbike/lib/rlbike
+[0.623s] writing list of installed files to '/home/ptlab/ros2_rlbike/build/rlbike/install.log'
+[0.637s] Invoked command in '/home/ptlab/ros2_rlbike/src/rlbike' returned '0': PYTHONPATH=/home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../../build/rlbike build --build-base /home/ptlab/ros2_rlbike/build/rlbike/build install --prefix /home/ptlab/ros2_rlbike/install/rlbike --record /home/ptlab/ros2_rlbike/build/rlbike/install.log --single-version-externally-managed

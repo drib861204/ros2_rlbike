@@ -1,0 +1,36 @@
+/home/ptlab/.local/lib/python3.6/site-packages/setuptools/dist.py:726: UserWarning: Usage of dash-separated 'script-dir' will not be supported in future versions. Please use the underscore name 'script_dir' instead
+  % (opt, underscore_opt)
+/home/ptlab/.local/lib/python3.6/site-packages/setuptools/dist.py:726: UserWarning: Usage of dash-separated 'install-scripts' will not be supported in future versions. Please use the underscore name 'install_scripts' instead
+  % (opt, underscore_opt)
+running egg_info
+writing ../../build/rlbike/rlbike.egg-info/PKG-INFO
+writing dependency_links to ../../build/rlbike/rlbike.egg-info/dependency_links.txt
+writing entry points to ../../build/rlbike/rlbike.egg-info/entry_points.txt
+writing requirements to ../../build/rlbike/rlbike.egg-info/requires.txt
+writing top-level names to ../../build/rlbike/rlbike.egg-info/top_level.txt
+package init file 'rlbike/files/__init__.py' not found (or not a regular file)
+reading manifest file '../../build/rlbike/rlbike.egg-info/SOURCES.txt'
+writing manifest file '../../build/rlbike/rlbike.egg-info/SOURCES.txt'
+running build
+running build_py
+copying rlbike/motor_bridge.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike
+copying rlbike/run.py -> /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike
+running install
+/home/ptlab/.local/lib/python3.6/site-packages/setuptools/command/install.py:37: SetuptoolsDeprecationWarning: setup.py install is deprecated. Use build and pip and other standards-based tools.
+  setuptools.SetuptoolsDeprecationWarning,
+running install_lib
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/motor_bridge.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike
+copying /home/ptlab/ros2_rlbike/build/rlbike/build/lib/rlbike/run.py -> /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/motor_bridge.py to motor_bridge.cpython-36.pyc
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/PID_control.py to PID_control.cpython-36.pyc
+Sorry: IndentationError: unindent does not match any outer indentation level (PID_control.py, line 44)
+byte-compiling /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike/run.py to run.cpython-36.pyc
+running install_data
+running install_egg_info
+removing '/home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike-0.0.0-py3.6.egg-info' (and everything under it)
+Copying ../../build/rlbike/rlbike.egg-info to /home/ptlab/ros2_rlbike/install/rlbike/lib/python3.6/site-packages/rlbike-0.0.0-py3.6.egg-info
+running install_scripts
+Installing imu_bridge script to /home/ptlab/ros2_rlbike/install/rlbike/lib/rlbike
+Installing motor_bridge script to /home/ptlab/ros2_rlbike/install/rlbike/lib/rlbike
+Installing run script to /home/ptlab/ros2_rlbike/install/rlbike/lib/rlbike
+writing list of installed files to '/home/ptlab/ros2_rlbike/build/rlbike/install.log'
