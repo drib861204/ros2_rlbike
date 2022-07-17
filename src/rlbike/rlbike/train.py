@@ -440,10 +440,10 @@ class Node_RL(Node):
 
         self.Iq_cmd_pub_msg.data = self.action * env.max_Iq
         
-        if self.frame % 2 == 0:
+        '''if self.frame % 2 == 0:
             self.Iq_cmd_pub_msg.data = 200.0
         else:
-            self.Iq_cmd_pub_msg.data = -200.0
+            self.Iq_cmd_pub_msg.data = -200.0'''
             
         self.iq_cmd_pub.publish(self.Iq_cmd_pub_msg)
         #self.get_logger().info('Publishing Iq cmd: "%f"' % self.Iq_cmd_pub_msg.data)

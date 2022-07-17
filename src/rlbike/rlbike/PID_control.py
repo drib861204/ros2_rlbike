@@ -1,23 +1,22 @@
+import matplotlib
+matplotlib.use('Agg')
+import os
 import time
-from rmdx8 import *
+import torch
+import numpy as np
+from math import pi
+import argparse
 import matplotlib.pyplot as plt
-from OpenIMU_SPI import *
-import RPi.GPIO as GPIO
 
-nRST_PIN = 21
-time.sleep(0.1)
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(nRST_PIN, GPIO.OUT)
-time.sleep(0.1)
-GPIO.output(nRST_PIN, 0)
-time.sleep(5)
-GPIO.output(nRST_PIN, 1)
-print("Reset Ready")
-time.sleep(0.1)
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Float64, Float64MultiArray
 
-my_motor = RmdX8()
-openimu_spi = SpiOpenIMU(target_module="300ZI", fw='26.0.7', cs_pin = 19, interrupt_pin = 26, drdy_status=False)
+
+
+
+
+
 
 Iq_feedback = np.int(0)
 q2_dot = np.int(0)

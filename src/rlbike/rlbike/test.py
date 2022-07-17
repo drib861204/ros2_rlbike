@@ -370,6 +370,10 @@ class Node_RL(Node):
             #agent.step(self.state, self.action, reward, next_state, [done], self.frame, 0)
             #self.state = next_state
 
+            print("ori state", self.state)
+            self.state[1] /= 10
+            print("after state", self.state)
+
             action_cmd = agent.act(self.state)
 
             action_cmd = action_cmd[0]
