@@ -57,6 +57,8 @@ class IMU(Node):
 
         self.q1_dot = list_rate[0] - self.bias_q1dot
 
+        self.q1_dot /= 10 
+
         msg.data = [self.q1*pi/180, self.q1_dot*pi/180]
         #msg.data = [self.q1*1000, self.q1_dot*1000]
         self.publisher_.publish(msg)
