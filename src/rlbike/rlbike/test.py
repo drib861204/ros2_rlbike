@@ -450,6 +450,11 @@ class Node_RL(Node):
                 #print("cumulative reward:", self.episode_reward)
 
             if args.type == "SAC":
+
+                print("ori state", self.state)
+                self.state[1] /= 10
+                print("after state", self.state)
+
                 action_cmd = agent.act(np.expand_dims(self.state, axis=0), eval=True)
                 action_cmd = action_cmd[0][0]
             elif args.type == "TD3":
