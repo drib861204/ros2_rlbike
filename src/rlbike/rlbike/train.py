@@ -363,7 +363,7 @@ class Node_RL(Node):
         self.frame = 0
         self.i_episode = 1
         self.rep = 0
-        self.rep_max = 30 #500
+        self.rep_max = 20 #500
         self.episode_reward = 0
         self.state_action_log = np.zeros((1, 4))
 
