@@ -1,6 +1,0 @@
-source;share/rlbike/hook/pythonpath.ps1
-source;share/rlbike/hook/pythonpath.dsv
-source;share/rlbike/hook/pythonpath.sh
-source;share/rlbike/hook/ament_prefix_path.ps1
-source;share/rlbike/hook/ament_prefix_path.dsv
-source;share/rlbike/hook/ament_prefix_path.sh

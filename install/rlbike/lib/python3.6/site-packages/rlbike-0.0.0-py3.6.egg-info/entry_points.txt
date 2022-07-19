@@ -1,6 +1,0 @@
-[console_scripts]
-imu_bridge = rlbike.imu_bridge:main
-motor_bridge = rlbike.motor_bridge:main
-test = rlbike.test:main
-train = rlbike.train:main
-
